@@ -1,15 +1,15 @@
-  class Stuff
-  
-    class << self
-      include HTMLDiff
-    end
-    
-    # or extend HTMLDiff ?
-  
+class Stuff
+
+  class << self
+    include HTMLDiff
   end
   
-  Stuff.diff('a word is here', 'a nother word is there')
-  
-  # => 'a<ins> nother</ins>word is <del>here</del><ins>there</ins>'
-  #
-  # or something like that
+  # or extend HTMLDiff ?
+
+end
+
+Stuff.diff('a word is here', 'a nother word is there')
+
+# => 'a<ins class=\"diffins\"> nother</ins> word is <del class=\"diffmod\">here</del><ins class=\"diffmod\">there</ins>'
+
+Checkout the crappy specs for good examples. 
