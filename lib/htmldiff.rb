@@ -240,7 +240,7 @@ module HTMLDiff
     end
 
     def explode(sequence)
-      sequence.is_a?(String) ? sequence.split(//) : sequence
+      sequence.is_a?(String) ? sequence.split("") : sequence
     end
   
     def end_of_tag?(char)
@@ -284,8 +284,11 @@ module HTMLDiff
             words << current_word unless current_word.empty?
             current_word = char
             mode = :whitespace
-          else
+          elsif /[\w,\.!@#\$%\^&\*\(\)\[\]{}\-\+=:;\']+/i.match char
             current_word << char
+					else
+            words << current_word unless current_word.empty?
+            current_word = char
           end
         when :whitespace
           if start_of_tag? char
