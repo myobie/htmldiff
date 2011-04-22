@@ -284,7 +284,7 @@ module HTMLDiff
             words << current_word unless current_word.empty?
             current_word = char
             mode = :whitespace
-          elsif /[\w,\.!@#\$%\^&\*\(\)\[\]{}\-\+=:;\']+/i.match char
+          elsif /[\w\#@]+/i.match char
             current_word << char
 					else
             words << current_word unless current_word.empty?

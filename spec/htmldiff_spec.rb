@@ -1,3 +1,4 @@
+# coding: utf-8
 require File.dirname(__FILE__) + '/spec_helper'
 require 'htmldiff'
 
@@ -27,6 +28,11 @@ describe "htmldiff" do
   it "should change a letter" do
     diff = TestDiff.diff('a b c', 'a d c')
     diff.should == "a <del class=\"diffmod\">b</del><ins class=\"diffmod\">d</ins> c"
+  end
+
+  it "should support Chinese" do
+    diff = TestDiff.diff('这个是中文内容, Ruby is the bast', '这是中国语内容，Ruby is the best language.')
+    diff.should == "这<del class=\"diffdel\">个</del>是中<del class=\"diffmod\">文</del><ins class=\"diffmod\">国语</ins>内<del class=\"diffmod\">容, Ruby</del><ins class=\"diffmod\">容，Ruby</ins> is the <del class=\"diffmod\">bast</del><ins class=\"diffmod\">best language.</ins>"
   end
   
 end
