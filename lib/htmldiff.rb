@@ -197,6 +197,10 @@ module HTMLDiff
     def tag?(item)
       opening_tag?(item) or closing_tag?(item)
     end
+    
+    def img_tag?(item)
+      (item[0..4].downcase == '<img ') && (item[-2..-1].downcase == '/>')
+    end
 
     def extract_consecutive_words(words, &condition)
       index_of_first_tag = nil
