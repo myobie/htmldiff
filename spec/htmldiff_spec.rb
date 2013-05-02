@@ -34,5 +34,19 @@ describe "htmldiff" do
     diff = TestDiff.diff('这个是中文内容, Ruby is the bast', '这是中国语内容，Ruby is the best language.')
     diff.should == "这<del class=\"diffdel\">个</del>是中<del class=\"diffmod\">文</del><ins class=\"diffmod\">国语</ins>内<del class=\"diffmod\">容, Ruby</del><ins class=\"diffmod\">容，Ruby</ins> is the <del class=\"diffmod\">bast</del><ins class=\"diffmod\">best language.</ins>"
   end
+
+  it "should support img tags insertion" do
+    oldv = 'a b c'
+    newv = 'a b <img src="some_url" /> c'
+    diff = TestDiff.diff(oldv, newv)
+    diff.should == "a b <ins class=\"diffins\"><img src=\"some_url\" /> </ins>c"
+  end
+  
+  it "should support img tags deletion" do
+    oldv = 'a b c'
+    newv = 'a b <img src="some_url" /> c'
+    diff = TestDiff.diff(newv, oldv)
+    diff.should == "a b <del class=\"diffdel\"><img src=\"some_url\" /> </del>c"
+  end
   
 end

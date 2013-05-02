@@ -231,8 +231,10 @@ module HTMLDiff
     def insert_tag(tagname, cssclass, words)
       loop do
         break if words.empty?
-        non_tags = extract_consecutive_words(words) { |word| not tag?(word) }
-        @content << wrap_text(non_tags.join, tagname, cssclass) unless non_tags.empty?
+        # non_tags = extract_consecutive_words(words) { |word| not tag?(word) }
+        # @content << wrap_text(non_tags.join, tagname, cssclass) unless non_tags.empty?
+        non_tags = extract_consecutive_words(words) { |word| (img_tag?(word)) || (!tag?(word)) }
+        @content << wrap_text(non_tags.join, tagname, cssclass) unless non_tags.join.strip.empty?
 
         break if words.empty?
         @content += extract_consecutive_words(words) { |word| tag?(word) }
