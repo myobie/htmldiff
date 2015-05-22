@@ -1,3 +1,9 @@
+# HTMLDiff
+
+Displays diffs of html input strings
+
+# Example
+
 class Stuff
 
   class << self

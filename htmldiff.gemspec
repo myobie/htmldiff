@@ -3,12 +3,12 @@
 Gem::Specification.new do |s|
   s.name = %q{htmldiff}
   s.version = "0.0.1"
-
+  s.license = 'MIT'
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Nathan Herald"]
   s.autorequire = %q{htmldiff}
   s.date = %q{2008-11-21}
-  s.description = %q{HTML diffs of text (borrowed from a wiki software I no longer remember)}
+  s.description = %q{HTMLDiff produces HTML diffs of text (borrowed from a wiki software I no longer remember)}
   s.email = %q{nathan@myobie.com}
   s.extra_rdoc_files = ["README", "LICENSE", "TODO"]
   s.files = ["LICENSE", "README", "Rakefile", "TODO", "lib/htmldiff.rb", "spec/htmldiff_spec.rb", "spec/spec_helper.rb"]
@@ -27,4 +27,7 @@ Gem::Specification.new do |s|
     end
   else
   end
+
+  s.add_development_dependency 'rake', '~> 0'
+  s.add_development_dependency 'rspec', '~> 3.2'
 end
