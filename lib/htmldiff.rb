@@ -250,16 +250,16 @@ module HTMLDiff
     def start_of_tag?(char)
       char == '<'
     end
-    
-    def whitespace?(char)
-      char =~ /\s/
+
+    def wordchar?(char)
+      char =~ /[\p{Alnum}@#.]/i
     end
-  
+
     def convert_html_to_list_of_words(x, use_brackets = false)
-      mode = :char
+      mode = :wordchar
       current_word  = ''
       words = []
-      
+
       explode(x).each do |char|
         case mode
         when :tag
@@ -267,42 +267,32 @@ module HTMLDiff
             current_word << (use_brackets ? ']' : '>')
             words << current_word
             current_word = ''
-            if whitespace?(char) 
-              mode = :whitespace 
-            else
-              mode = :char
-            end
           else
             current_word << char
           end
-        when :char
+        when :wordchar
           if start_of_tag? char
             words << current_word unless current_word.empty?
             current_word = (use_brackets ? '[' : '<')
             mode = :tag
-          elsif /\s/.match char
-            words << current_word unless current_word.empty?
-            current_word = char
-            mode = :whitespace
-          elsif /[\w\#@]+/i.match char
-            current_word << char
-					else
-            words << current_word unless current_word.empty?
-            current_word = char
-          end
-        when :whitespace
-          if start_of_tag? char
-            words << current_word unless current_word.empty?
-            current_word = (use_brackets ? '[' : '<')
-            mode = :tag
-          elsif /\s/.match char
+          elsif wordchar?(char)
             current_word << char
           else
             words << current_word unless current_word.empty?
             current_word = char
-            mode = :char
+            mode = :other
           end
-        else 
+        when :other
+          if start_of_tag? char
+            words << current_word unless current_word.empty?
+            current_word = (use_brackets ? '[' : '<')
+            mode = :tag
+          else
+            words << current_word unless current_word.empty?
+            current_word = char
+            mode = :wordchar if wordchar?(char)
+          end
+        else
           raise "Unknown mode #{mode.inspect}"
         end
       end
