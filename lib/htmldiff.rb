@@ -197,6 +197,10 @@ module HTMLDiff
     def tag?(item)
       opening_tag?(item) or closing_tag?(item)
     end
+    
+    def img_tag?(item)
+      (item[0..4].downcase == '<img ') && (item[-2..-1].downcase == '/>')
+    end
 
     def extract_consecutive_words(words, &condition)
       index_of_first_tag = nil
@@ -227,8 +231,10 @@ module HTMLDiff
     def insert_tag(tagname, cssclass, words)
       loop do
         break if words.empty?
-        non_tags = extract_consecutive_words(words) { |word| not tag?(word) }
-        @content << wrap_text(non_tags.join, tagname, cssclass) unless non_tags.empty?
+        # non_tags = extract_consecutive_words(words) { |word| not tag?(word) }
+        # @content << wrap_text(non_tags.join, tagname, cssclass) unless non_tags.empty?
+        non_tags = extract_consecutive_words(words) { |word| (img_tag?(word)) || (!tag?(word)) }
+        @content << wrap_text(non_tags.join, tagname, cssclass) unless non_tags.join.strip.empty?
 
         break if words.empty?
         @content += extract_consecutive_words(words) { |word| tag?(word) }
