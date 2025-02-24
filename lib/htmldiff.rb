@@ -267,6 +267,7 @@ module HTMLDiff
             current_word << (use_brackets ? ']' : '>')
             words << current_word
             current_word = ''
+            mode = :wordchar
           else
             current_word << char
           end
