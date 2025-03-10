@@ -5,6 +5,8 @@ require 'html_diff/diff_builder'
 require 'html_diff/formatters/legacy_formatter'
 require 'html_diff/formatters/span_formatter'
 
+# Provides functionality for generating HTML-formatted diffs
+# between two text strings.
 module HTMLDiff
   extend self
 

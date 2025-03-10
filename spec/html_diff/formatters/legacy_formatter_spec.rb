@@ -65,13 +65,13 @@ RSpec.describe HTMLDiff::Formatters::LegacyFormatter do
         expect(result).to eq('')
       end
 
-      it 'handles nil content in replace action' do
+      it 'handles nil old_string in replace action' do
         changes = [['!', nil, 'new text']]
         result = described_class.format(changes)
         expect(result).to eq('<ins class="diffmod">new text</ins>')
       end
 
-      it 'handles nil content in replace action' do
+      it 'handles nil new_string in replace action' do
         changes = [['!', 'old text', nil]]
         result = described_class.format(changes)
         expect(result).to eq('<del class="diffmod">old text</del>')

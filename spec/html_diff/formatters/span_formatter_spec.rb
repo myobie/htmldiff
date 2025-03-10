@@ -65,13 +65,13 @@ RSpec.describe HTMLDiff::Formatters::SpanFormatter do
         expect(result).to eq('')
       end
 
-      it 'handles nil content in replace action' do
+      it 'handles nil old_string in replace action' do
         changes = [['!', nil, 'new text']]
         result = described_class.format(changes)
         expect(result).to eq('<span class="diff-replace diff-add">new text</span>')
       end
 
-      it 'handles nil content in replace action' do
+      it 'handles nil new_string in replace action' do
         changes = [['!', 'old text', nil]]
         result = described_class.format(changes)
         expect(result).to eq('<span class="diff-replace diff-remove">old text</span>')

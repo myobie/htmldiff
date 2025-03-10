@@ -17,17 +17,14 @@ module HTMLDiff
       last_action = nil
       changes.each_with_object([]) do |change, result|
         last = result.last
-        if change.action == last_action
+        if last_action == change.action
           last[1] << change.old_element if last[1]
           last[2] << change.new_element if last[2]
-        elsif (change.action == '+' && last_action == '-') || (change.action == '-' && last_action == '+')
+        elsif last_action && last_action != '=' && change.action != '='
           last[0] = '!'
           last[1] ||= +''
+          last[1] << change.old_element if change.old_element
           last[2] ||= +''
-          last[1] << change.old_element if change.old_element
-          last[2] << change.new_element if change.new_element
-        elsif last_action == '!' && %w[- +].include?(change.action)
-          last[1] << change.old_element if change.old_element
           last[2] << change.new_element if change.new_element
         else
           result << [change.action, change.old_element&.dup, change.new_element&.dup]

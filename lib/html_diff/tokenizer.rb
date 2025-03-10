@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module HTMLDiff
+  # Splits a string into tokens for diff comparison.
   module Tokenizer
     extend self
 
@@ -12,6 +13,10 @@ module HTMLDiff
     HTML_ENTITY_REGEXP = /&([a-zA-Z0-9]+|#[0-9]{1,6}|#x[0-9a-fA-F]{1,6});/.freeze
     # PHONE_REGEXP = /(?:\+\d{1,3}[- ]?)?\(?(?:\d{1,4})\)?[- ]?(?:\d{1,4})[- ]?(?:\d{1,4})/
 
+    # Tokenizes a string into an array of words and entities.
+    #
+    # @param string [String] The string to tokenize.
+    # @return [Array<String>] The array of tokens.
     def tokenize(string)
       # Extract special entities including HTML tags (with priority for tags)
       entities = extract_special_entities(string)
