@@ -166,7 +166,7 @@ describe "htmldiff" do
       diff.should == "&lt;p&gt;<ins class=\"diffins\">new </ins>text&lt;/p&gt;"
     end
 
-    pending "should treat entities as single units" do
+    it "should treat entities as single units" do
       diff = TestDiff.diff('a&nbsp;b', 'a b')
       diff.should == "a<del class=\"diffmod\">&nbsp;</del><ins class=\"diffmod\"> </ins>b"
     end

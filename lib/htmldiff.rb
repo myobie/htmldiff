@@ -17,10 +17,7 @@ module HTMLDiff
   Operation = Struct.new(:action, :start_in_old, :end_in_old, :start_in_new, :end_in_new)
 
   class DiffBuilder
-    WORDCHAR_REGEXP = /[\p{Latin}\p{Greek}\p{Cyrillic}\p{Arabic}\p{Hebrew}\d@#.]/i
-
-    # TODO: Make .;? as word end chars
-    # TODO: Hyphens in words
+    WORDCHAR_REGEXP = /[\p{Latin}\p{Greek}\p{Cyrillic}\p{Arabic}\p{Hebrew}\d@#.-]/i
 
     def initialize(old_version, new_version)
       @old_version = old_version
@@ -174,7 +171,7 @@ module HTMLDiff
 
     def perform_operation(operation)
       @operation = operation
-      self.send operation.action, operation
+      self.send(operation.action, operation)
     end
 
     def replace(operation)
@@ -214,15 +211,16 @@ module HTMLDiff
     def extract_consecutive_words(words, &condition)
       index_of_first_tag = nil
       words.each_with_index do |word, i|
-        if !condition.call(word)
+        unless condition.call(word)
           index_of_first_tag = i
           break
         end
       end
+
       if index_of_first_tag
-        return words.slice!(0...index_of_first_tag)
+        words.slice!(0...index_of_first_tag)
       else
-        return words.slice!(0..words.length)
+        words.slice!(0..words.length)
       end
     end
 
@@ -240,7 +238,7 @@ module HTMLDiff
         # non_tags = extract_consecutive_words(words) { |word| not tag?(word) }
         # @content << wrap_text(non_tags.join, tagname, cssclass) unless non_tags.empty?
         non_tags = extract_consecutive_words(words) { |word| (img_tag?(word)) || (!tag?(word)) }
-        @content << wrap_text(non_tags.join, tagname, cssclass) unless non_tags.join.strip.empty?
+        @content << wrap_text(non_tags.join, tagname, cssclass) unless non_tags.join.empty?
 
         break if words.empty?
         @content += extract_consecutive_words(words) { |word| tag?(word) }
@@ -280,7 +278,7 @@ module HTMLDiff
       current_word = +''
       words = []
 
-      explode(x).each do |char|
+      x.each do |char|
         case mode
         when :tag
           if end_of_tag?(char)
@@ -300,28 +298,28 @@ module HTMLDiff
           elsif !html_entity_char?(char)
             # This wasn't actually an HTML entity, just an ampersand followed by non-entity chars
             # Treat it as a regular word
-            words << current_word unless current_word.empty?
+            words << current_word
             current_word = char
             mode = wordchar?(char) ? :wordchar : :other
           end
         when :wordchar
           if start_of_tag?(char)
-            words << current_word unless current_word.empty?
+            words << current_word
             current_word = use_brackets ? +'[' : +'<'
             mode = :tag
           elsif start_of_html_entity?(char)
-            words << current_word unless current_word.empty?
+            words << current_word
             current_word = char
             mode = :html_entity
           elsif wordchar?(char)
             current_word << char
           else
-            words << current_word unless current_word.empty?
+            words << current_word
             current_word = char
             mode = :other
           end
         when :other
-          words << current_word unless current_word.empty?
+          words << current_word
           if start_of_tag?(char)
             current_word = use_brackets ? +'[' : +'<'
             mode = :tag
@@ -337,7 +335,7 @@ module HTMLDiff
         end
       end
 
-      words << current_word unless current_word.empty?
+      words << current_word
       words
     end
   end
