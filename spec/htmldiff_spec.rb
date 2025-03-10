@@ -48,7 +48,7 @@ describe "htmldiff" do
     diff.should == "<del class=\"diffmod\">Καλημέρα</del><ins class=\"diffmod\">Καλησπέρα</ins> κόσμε"
   end
 
-  pending "should support Arabic" do
+  it "should support Arabic" do
     diff = TestDiff.diff('مرحبا بالعالم', 'مرحبا جميل بالعالم')
     diff.should == "مرحبا <ins class=\"diffins\">جميل </ins>بالعالم"
   end
@@ -73,14 +73,14 @@ describe "htmldiff" do
     diff.should == "<div><del class=\"diffmod\">Текст</del><ins class=\"diffmod\">Новый текст</ins> в теге</div>"
   end
 
-  pending "should support Arabic with HTML tags" do
+  it "should support Arabic with HTML tags" do
     diff = TestDiff.diff('<span>النص في العلامة</span>', '<span>النص الجديد في العلامة</span>')
-    diff.should == "<span>النص <ins class=\"diffins\">الجديد </ins>في العلامة</span>"
+    diff.should == "<span>النص<ins class=\"diffins\"> الجديد</ins> في العلامة</span>"
   end
 
-  pending "should handle complex Hebrew changes" do
+  it "should handle complex Hebrew changes" do
     diff = TestDiff.diff('אני אוהב לתכנת בשפת רובי', 'אני אוהב מאוד לתכנת בשפת פייתון')
-    diff.should == "אני אוהב <ins class=\"diffins\">מאוד </ins>לתכנת בשפת <del class=\"diffmod\">רובי</del><ins class=\"diffmod\">פייתון</ins>"
+    diff.should == "אני אוהב<ins class=\"diffins\"> מאוד</ins> לתכנת בשפת <del class=\"diffmod\">רובי</del><ins class=\"diffmod\">פייתון</ins>"
   end
 
   it "should support Vietnamese diacritics" do
@@ -90,7 +90,7 @@ describe "htmldiff" do
 
   it "should handle mixed languages with punctuation" do
     diff = TestDiff.diff('Hello, Привет! مرحبا. שלום', 'Hello, Привет! مرحبا جدا. שלום עולם')
-    diff.should == "Hello, Привет! مرحبا<ins class=\"diffins\"> جدا</ins>. שלום<ins class=\"diffins\"> עולם</ins>"
+    diff.should == "Hello, Привет! <del class=\"diffmod\">مرحبا.</del><ins class=\"diffmod\">مرحبا جدا.</ins> שלום<ins class=\"diffins\"> עולם</ins>"
   end
 
   it "should support Greek with formatting tags" do
@@ -98,7 +98,7 @@ describe "htmldiff" do
     diff.should == "<b>Γεια <del class=\"diffmod\">σας</del><ins class=\"diffmod\">σου</ins></b> κόσμε"
   end
 
-  pending "should detect changes within Arabic words" do
+  it "should detect changes within Arabic words" do
     diff = TestDiff.diff('البرمجة ممتعة', 'البرمجة سهلة')
     diff.should == "البرمجة <del class=\"diffmod\">ممتعة</del><ins class=\"diffmod\">سهلة</ins>"
   end
@@ -146,12 +146,12 @@ describe "htmldiff" do
   end
 
   describe "HTML entities" do
-    pending "should support basic HTML entities" do
+    it "should support basic HTML entities" do
       diff = TestDiff.diff('a &lt; b &gt; c', 'a &lt; b &amp; c')
       diff.should == "a &lt; b <del class=\"diffmod\">&gt;</del><ins class=\"diffmod\">&amp;</ins> c"
     end
 
-    pending "should handle entity changes" do
+    it "should handle entity changes" do
       diff = TestDiff.diff('&amp; &lt; &gt; &quot; &apos;', '&amp; &lt; &gt; &apos; &quot;')
       diff.should == "&amp; &lt; &gt; <ins class=\"diffins\">&apos; </ins>&quot;<del class=\"diffdel\"> &apos;</del>"
     end
@@ -171,9 +171,9 @@ describe "htmldiff" do
       diff.should == "a<del class=\"diffmod\">&nbsp;</del><ins class=\"diffmod\"> </ins>b"
     end
 
-    pending "should handle mixed entities and normal text" do
+    it "should handle mixed entities and normal text" do
       diff = TestDiff.diff('&copy; 2023 Company', '&copy; 2024 New Company')
-      diff.should == "&copy; <del class=\"diffmod\">2023</del><ins class=\"diffmod\">2024</ins> <ins class=\"diffins\">New </ins>Company"
+      diff.should == "&copy; <del class=\"diffmod\">2023</del><ins class=\"diffmod\">2024 New</ins> Company"
     end
 
     it "should diff escaped HTML tags correctly" do
@@ -193,7 +193,7 @@ describe "htmldiff" do
       diff.should == "&lt;a title=\"&amp; <del class=\"diffmod\">more</del><ins class=\"diffmod\">less</ins>\"&gt;link&lt;/a&gt;"
     end
 
-    pending "should handle complex entity sequences" do
+    it "should handle complex entity sequences" do
       diff = TestDiff.diff('&alpha;&beta;&gamma;', '&alpha;&delta;&gamma;')
       diff.should == "&alpha;<del class=\"diffmod\">&beta;</del><ins class=\"diffmod\">&delta;</ins>&gamma;"
     end

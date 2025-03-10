@@ -17,11 +17,10 @@ module HTMLDiff
   Operation = Struct.new(:action, :start_in_old, :end_in_old, :start_in_new, :end_in_new)
 
   class DiffBuilder
-    WORDCHAR_REGEXP = /[\p{Latin}\p{Greek}\p{Cyrillic}\d@#.]/i
-    # TODO: Make & as word start char
+    WORDCHAR_REGEXP = /[\p{Latin}\p{Greek}\p{Cyrillic}\p{Arabic}\p{Hebrew}\d@#.]/i
+
     # TODO: Make .;? as word end chars
     # TODO: Hyphens in words
-    # TODO: detect email addresses specially
 
     def initialize(old_version, new_version)
       @old_version = old_version
@@ -60,7 +59,7 @@ module HTMLDiff
         match_starts_at_current_position_in_old = (position_in_old == match.start_in_old)
         match_starts_at_current_position_in_new = (position_in_new == match.start_in_new)
 
-        action_upto_match_positions = 
+        action_upto_match_positions =
           case [match_starts_at_current_position_in_old, match_starts_at_current_position_in_new]
           when [false, false]
             :replace
@@ -104,7 +103,7 @@ module HTMLDiff
       match = find_match(start_in_old, end_in_old, start_in_new, end_in_new)
       return unless match
 
-      if start_in_old < match.start_in_old and start_in_new < match.start_in_new
+      if start_in_old < match.start_in_old && start_in_new < match.start_in_new
         recursively_find_matching_blocks(start_in_old,
                                          match.start_in_old,
                                          start_in_new,
@@ -112,7 +111,7 @@ module HTMLDiff
                                          matching_blocks)
       end
       matching_blocks << match
-      if match.end_in_old < end_in_old and match.end_in_new < end_in_new
+      if match.end_in_old < end_in_old && match.end_in_new < end_in_new
         recursively_find_matching_blocks(match.end_in_old,
                                          end_in_old,
                                          match.end_in_new,
@@ -152,8 +151,8 @@ module HTMLDiff
     end
 
     def add_matching_words_left(match_in_old, match_in_new, match_size, start_in_old, start_in_new)
-      while match_in_old > start_in_old and 
-            match_in_new > start_in_new and 
+      while match_in_old > start_in_old &&
+            match_in_new > start_in_new &&
             @old_words[match_in_old - 1] == @new_words[match_in_new - 1]
         match_in_old -= 1
         match_in_new -= 1
@@ -163,8 +162,8 @@ module HTMLDiff
     end
 
     def add_matching_words_right(match_in_old, match_in_new, match_size, end_in_old, end_in_new)
-      while match_in_old + match_size < end_in_old and 
-            match_in_new + match_size < end_in_new and
+      while match_in_old + match_size < end_in_old &&
+            match_in_new + match_size < end_in_new &&
             @old_words[match_in_old + match_size] == @new_words[match_in_new + match_size]
         match_size += 1
       end
@@ -214,7 +213,7 @@ module HTMLDiff
 
     def extract_consecutive_words(words, &condition)
       index_of_first_tag = nil
-      words.each_with_index do |word, i| 
+      words.each_with_index do |word, i|
         if !condition.call(word)
           index_of_first_tag = i
           break
@@ -227,17 +226,14 @@ module HTMLDiff
       end
     end
 
-    # This method encloses words within a specified tag (ins or del), and adds this into @content, 
-    # with a twist: if there are words contain tags, it actually creates multiple ins or del, 
+    # This method encloses words within a specified tag (ins or del), and adds this into @content,
+    # with a twist: if there are words contain tags, it actually creates multiple ins or del,
     # so that they don't include any ins or del. This handles cases like
     # old: '<p>a</p>'
     # new: '<p>ab</p><p>c</b>'
     # diff result: '<p>a<ins>b</ins></p><p><ins>c</ins></p>'
     # this still doesn't guarantee valid HTML (hint: think about diffing a text containing ins or
     # del tags), but handles correctly more cases than the earlier version.
-    # 
-    # P.S.: Spare a thought for people who write HTML browsers. They live in this ... every day.
-
     def insert_tag(tagname, cssclass, words)
       loop do
         break if words.empty?
@@ -271,9 +267,17 @@ module HTMLDiff
       char.match?(WORDCHAR_REGEXP)
     end
 
+    def html_entity_char?(char)
+      char.match?(/[a-zA-Z0-9#;]/)
+    end
+
+    def start_of_html_entity?(char)
+      char == '&'
+    end
+
     def convert_html_to_list_of_words(x, use_brackets = false)
       mode = :wordchar
-      current_word  = +''
+      current_word = +''
       words = []
 
       explode(x).each do |char|
@@ -287,11 +291,28 @@ module HTMLDiff
           else
             current_word << char
           end
+        when :html_entity
+          current_word << char
+          if char == ';'
+            words << current_word
+            current_word = +''
+            mode = :wordchar
+          elsif !html_entity_char?(char)
+            # This wasn't actually an HTML entity, just an ampersand followed by non-entity chars
+            # Treat it as a regular word
+            words << current_word unless current_word.empty?
+            current_word = char
+            mode = wordchar?(char) ? :wordchar : :other
+          end
         when :wordchar
           if start_of_tag?(char)
             words << current_word unless current_word.empty?
             current_word = use_brackets ? +'[' : +'<'
             mode = :tag
+          elsif start_of_html_entity?(char)
+            words << current_word unless current_word.empty?
+            current_word = char
+            mode = :html_entity
           elsif wordchar?(char)
             current_word << char
           else
@@ -304,6 +325,9 @@ module HTMLDiff
           if start_of_tag?(char)
             current_word = use_brackets ? +'[' : +'<'
             mode = :tag
+          elsif start_of_html_entity?(char)
+            current_word = char
+            mode = :html_entity
           else
             current_word = char
             mode = :wordchar if wordchar?(char)
@@ -312,6 +336,7 @@ module HTMLDiff
           raise "Unknown mode #{mode.inspect}"
         end
       end
+
       words << current_word unless current_word.empty?
       words
     end
