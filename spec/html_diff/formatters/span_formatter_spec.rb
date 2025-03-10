@@ -93,7 +93,7 @@ RSpec.describe HTMLDiff::Formatters::SpanFormatter do
       it 'formats mixed content correctly' do
         result = described_class.format(changes)
         expected = 'This is <span class="diff-remove">removed </span>and <span class="diff-add">added </span>' \
-          '<span class="diff-replace diff-remove">modified text</span><span class="diff-replace diff-add">changed text</span> at the end'
+                   '<span class="diff-replace diff-remove">modified text</span><span class="diff-replace diff-add">changed text</span> at the end'
         expect(result).to eq(expected)
       end
     end

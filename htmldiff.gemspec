@@ -13,10 +13,10 @@ Gem::Specification.new do |spec|
   spec.license = 'MIT'
 
   spec.add_dependency 'diff-lcs'
-  spec.add_development_dependency 'rspec'
   spec.add_development_dependency 'rake'
+  spec.add_development_dependency 'rspec'
 
-  spec.files         = Dir.glob('lib/**/*') + %w[LICENSE README]
-  spec.test_files    = Dir.glob('spec/**/*')
+  spec.files = Dir.glob('lib/**/*') + %w[LICENSE README]
   spec.require_paths = ['lib']
+  spec.metadata['rubygems_mfa_required'] = 'true'
 end

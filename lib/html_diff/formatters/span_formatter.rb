@@ -36,6 +36,7 @@ module HTMLDiff
       # @return [String] HTML markup with appropriate tags
       def span_tag(css_class, content)
         return '' unless content
+
         %(<span class="#{css_class}">#{content}</span>)
       end
     end

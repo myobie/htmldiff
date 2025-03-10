@@ -21,7 +21,7 @@ module HTMLDiff
           last[1] << change.old_element if last[1]
           last[2] << change.new_element if last[2]
         elsif (change.action == '+' && last_action == '-') || (change.action == '-' && last_action == '+')
-          last[0] == '!'
+          last[0] = '!'
           last[1] ||= +''
           last[2] ||= +''
           last[1] << change.old_element if change.old_element

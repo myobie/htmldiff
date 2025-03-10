@@ -5,11 +5,11 @@ module HTMLDiff
     extend self
 
     # The languages here use whitespace delimiters between words.
-    WORDCHAR_REGEXP = /[\p{Latin}\p{Greek}\p{Cyrillic}\p{Arabic}\p{Hebrew}\p{Devanagari}\p{Hangul}\p{Armenian}\p{Georgian}\p{Ethiopic}\p{Khmer}\p{Lao}\p{Myanmar}\p{Sinhala}\p{Tamil}\p{Telugu}\p{Kannada}\p{Malayalam}\p{Tibetan}\p{Mongolian}\d]/i
-    TAG_START_REGEXP = /<[^>]+>/
-    URL_REGEXP = %r{(https?://|www\.)[^\s<>"']+}i
-    EMAIL_REGEXP = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i
-    HTML_ENTITY_REGEXP = /&([a-zA-Z0-9]+|#[0-9]{1,6}|#x[0-9a-fA-F]{1,6});/
+    WORDCHAR_REGEXP = /[\p{Latin}\p{Greek}\p{Cyrillic}\p{Arabic}\p{Hebrew}\p{Devanagari}\p{Hangul}\p{Armenian}\p{Georgian}\p{Ethiopic}\p{Khmer}\p{Lao}\p{Myanmar}\p{Sinhala}\p{Tamil}\p{Telugu}\p{Kannada}\p{Malayalam}\p{Tibetan}\p{Mongolian}\d]/i.freeze
+    TAG_START_REGEXP = /<[^>]+>/.freeze
+    URL_REGEXP = %r{(https?://|www\.)[^\s<>"']+}i.freeze
+    EMAIL_REGEXP = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.freeze
+    HTML_ENTITY_REGEXP = /&([a-zA-Z0-9]+|#[0-9]{1,6}|#x[0-9a-fA-F]{1,6});/.freeze
     # PHONE_REGEXP = /(?:\+\d{1,3}[- ]?)?\(?(?:\d{1,4})\)?[- ]?(?:\d{1,4})[- ]?(?:\d{1,4})/
 
     def tokenize(string)
@@ -83,9 +83,7 @@ module HTMLDiff
         end_pos = start_pos + full_match.length
 
         # Only add if not inside a tag
-        unless inside_any_range?(start_pos, tag_ranges)
-          entities << [full_match, start_pos, end_pos]
-        end
+        entities << [full_match, start_pos, end_pos] unless inside_any_range?(start_pos, tag_ranges)
       end
 
       # Extract URLs (but only outside of tags)
@@ -95,9 +93,7 @@ module HTMLDiff
         end_pos = start_pos + full_match.length
 
         # Only add if not inside a tag
-        unless inside_any_range?(start_pos, tag_ranges)
-          entities << [full_match, start_pos, end_pos]
-        end
+        entities << [full_match, start_pos, end_pos] unless inside_any_range?(start_pos, tag_ranges)
       end
 
       # Extract emails (but only outside of tags)
@@ -107,9 +103,7 @@ module HTMLDiff
         end_pos = start_pos + full_match.length
 
         # Only add if not inside a tag
-        unless inside_any_range?(start_pos, tag_ranges)
-          entities << [full_match, start_pos, end_pos]
-        end
+        entities << [full_match, start_pos, end_pos] unless inside_any_range?(start_pos, tag_ranges)
       end
 
       # Sort by start position to ensure we process them in order
