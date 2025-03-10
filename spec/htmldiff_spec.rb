@@ -144,4 +144,58 @@ describe "htmldiff" do
     diff = TestDiff.diff(newv, oldv)
     diff.should == "a b <del class=\"diffdel\"><img src=\"some_url\" /> </del>c"
   end
+
+  describe "HTML entities" do
+    pending "should support basic HTML entities" do
+      diff = TestDiff.diff('a &lt; b &gt; c', 'a &lt; b &amp; c')
+      diff.should == "a &lt; b <del class=\"diffmod\">&gt;</del><ins class=\"diffmod\">&amp;</ins> c"
+    end
+
+    pending "should handle entity changes" do
+      diff = TestDiff.diff('&amp; &lt; &gt; &quot; &apos;', '&amp; &lt; &gt; &apos; &quot;')
+      diff.should == "&amp; &lt; &gt; <ins class=\"diffins\">&apos; </ins>&quot;<del class=\"diffdel\"> &apos;</del>"
+    end
+
+    it "should preserve numeric HTML entities" do
+      diff = TestDiff.diff('&#8364; is euro', '&#8364; is the euro symbol')
+      diff.should == "&#8364; is <ins class=\"diffins\">the </ins>euro<ins class=\"diffins\"> symbol</ins>"
+    end
+
+    it "should diff content with multiple entities correctly" do
+      diff = TestDiff.diff('&lt;p&gt;text&lt;/p&gt;', '&lt;p&gt;new text&lt;/p&gt;')
+      diff.should == "&lt;p&gt;<ins class=\"diffins\">new </ins>text&lt;/p&gt;"
+    end
+
+    pending "should treat entities as single units" do
+      diff = TestDiff.diff('a&nbsp;b', 'a b')
+      diff.should == "a<del class=\"diffmod\">&nbsp;</del><ins class=\"diffmod\"> </ins>b"
+    end
+
+    pending "should handle mixed entities and normal text" do
+      diff = TestDiff.diff('&copy; 2023 Company', '&copy; 2024 New Company')
+      diff.should == "&copy; <del class=\"diffmod\">2023</del><ins class=\"diffmod\">2024</ins> <ins class=\"diffins\">New </ins>Company"
+    end
+
+    it "should diff escaped HTML tags correctly" do
+      diff = TestDiff.diff('&lt;div class="old"&gt;content&lt;/div&gt;',
+                           '&lt;div class="new"&gt;content&lt;/div&gt;')
+      diff.should == "&lt;div class=\"<del class=\"diffmod\">old</del><ins class=\"diffmod\">new</ins>\"&gt;content&lt;/div&gt;"
+    end
+
+    it "should handle HTML entities in different scripts" do
+      diff = TestDiff.diff('&lt;span&gt;привет&lt;/span&gt;', '&lt;span&gt;здравствуйте&lt;/span&gt;')
+      diff.should == "&lt;span&gt;<del class=\"diffmod\">привет</del><ins class=\"diffmod\">здравствуйте</ins>&lt;/span&gt;"
+    end
+
+    it "should correctly process HTML entities in attributes" do
+      diff = TestDiff.diff('&lt;a title="&amp; more"&gt;link&lt;/a&gt;',
+                           '&lt;a title="&amp; less"&gt;link&lt;/a&gt;')
+      diff.should == "&lt;a title=\"&amp; <del class=\"diffmod\">more</del><ins class=\"diffmod\">less</ins>\"&gt;link&lt;/a&gt;"
+    end
+
+    pending "should handle complex entity sequences" do
+      diff = TestDiff.diff('&alpha;&beta;&gamma;', '&alpha;&delta;&gamma;')
+      diff.should == "&alpha;<del class=\"diffmod\">&beta;</del><ins class=\"diffmod\">&delta;</ins>&gamma;"
+    end
+  end
 end

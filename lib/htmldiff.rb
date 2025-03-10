@@ -18,6 +18,10 @@ module HTMLDiff
 
   class DiffBuilder
     WORDCHAR_REGEXP = /[\p{Latin}\p{Greek}\p{Cyrillic}\d@#.]/i
+    # TODO: Make & as word start char
+    # TODO: Make .;? as word end chars
+    # TODO: Hyphens in words
+    # TODO: detect email addresses specially
 
     def initialize(old_version, new_version)
       @old_version = old_version
