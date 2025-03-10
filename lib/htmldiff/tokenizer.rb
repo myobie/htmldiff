@@ -4,19 +4,14 @@ module HTMLDiff
   module Tokenizer
     extend self
 
-    # The languages here are those that typically use space delimiters between words.
-    # The characters @.- are added for email support, which could potentially be extracted to a
-    # specialized function.
+    # The languages here use whitespace delimiters between words.
     WORDCHAR_REGEXP = /[\p{Latin}\p{Greek}\p{Cyrillic}\p{Arabic}\p{Hebrew}\p{Devanagari}\p{Hangul}\p{Armenian}\p{Georgian}\p{Ethiopic}\p{Khmer}\p{Lao}\p{Myanmar}\p{Sinhala}\p{Tamil}\p{Telugu}\p{Kannada}\p{Malayalam}\p{Tibetan}\p{Mongolian}\d]/i
 
-    # Regular expressions for special entities
+    TAG_START_REGEXP = /<[^>]+>/
     URL_REGEXP = %r{(https?://|www\.)[^\s<>"']+}i
     EMAIL_REGEXP = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i
-    # PHONE_REGEXP = /(?:\+\d{1,3}[- ]?)?\(?(?:\d{1,4})\)?[- ]?(?:\d{1,4})[- ]?(?:\d{1,4})/
     HTML_ENTITY_REGEXP = /&([a-zA-Z0-9]+|#[0-9]{1,6}|#x[0-9a-fA-F]{1,6});/
-
-    # HTML Tag detection
-    TAG_START_REGEXP = /<[^>]+>/
+    # PHONE_REGEXP = /(?:\+\d{1,3}[- ]?)?\(?(?:\d{1,4})\)?[- ]?(?:\d{1,4})[- ]?(?:\d{1,4})/
 
     def tokenize(string)
       # Extract special entities including HTML tags (with priority for tags)
