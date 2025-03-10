@@ -142,7 +142,7 @@ diff = HTMLDiff.diff(old_text, new_text, tokenizer: MyCustomTokenizer)
 HTMLDiff uses a three-step process:
 
 1. **Tokenization**: The input strings are broken into an array of tokens by the `HTMLDiff::Tokenizer` module.
-2. **Diff Generation**: The `HTMLDiff::DiffBuilder` module uses the LCS (Longest Common Subsequence) algorithm to find the differences between the token arrays.
+2. **Diff Generation**: The `HTMLDiff::Differ` module uses the LCS (Longest Common Subsequence) algorithm to find the differences between the token arrays.
 3. **Formatting**: The differences are formatted into HTML by a formatter.
 
 ## About HTMLDiff
