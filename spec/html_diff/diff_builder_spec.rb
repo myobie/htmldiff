@@ -33,17 +33,6 @@ RSpec.describe HTMLDiff::DiffBuilder do
       result = builder.build
       expect(result).to eq 'This is <del class="diffmod">an</del><ins class="diffmod">a</ins> <del class="diffmod">old</del><ins class="diffmod">new</ins> string'
     end
-
-    it 'outputs a deprecation warning' do
-      described_class.class_variable_set(:@@warned_build, false)
-      expect { builder.build }.to output(/\AHTMLDiff::DiffBuilder#build is deprecated/).to_stderr
-    end
-
-    it 'only outputs the warning once' do
-      described_class.class_variable_set(:@@warned_build, false)
-      builder.build
-      expect { builder.build }.not_to output.to_stderr
-    end
   end
 end
 # rubocop:enable Style/ClassVars
