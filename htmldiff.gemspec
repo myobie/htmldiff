@@ -3,7 +3,7 @@
 Gem::Specification.new do |s|
   s.name = %q{htmldiff}
   s.version = '1.0.0'
-  s.authors = ['Nathan Herald', 'Johnny Shields']
+  s.authors = ['Nathan Herald', 'Johnny Shields', 'Sasha Karol']
   s.email = %q{nathan@myobie.com}
   s.description = %q{HTML diffs of text}
   s.summary = %q{HTML diffs of text}
