@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'generic_formatter'
+require_relative 'html_formatter'
 
 module HTMLDiff
   module Formatters
@@ -14,12 +14,12 @@ module HTMLDiff
       #   where action is one of '=' (equal), '-' (remove), '+' (add), or '!' (replace)
       # @return [String] HTML formatted diff
       def format(changes)
-        GenericFormatter.format(changes,
-                                tag: 'span',
-                                class_delete: 'diff-del',
-                                class_insert: 'diff-ins',
-                                class_replace_delete: 'diff-mod diff-del',
-                                class_replace_insert: 'diff-mod diff-ins')
+        HtmlFormatter.format(changes,
+                             tag: 'span',
+                             class_delete: 'diff-del',
+                             class_insert: 'diff-ins',
+                             class_replace_delete: 'diff-mod diff-del',
+                             class_replace_insert: 'diff-mod diff-ins')
       end
     end
   end

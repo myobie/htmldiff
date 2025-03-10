@@ -2,7 +2,7 @@
 
 require 'html_diff/tokenizer'
 require 'html_diff/differ'
-require 'html_diff/formatters/generic_formatter'
+require 'html_diff/formatters/html_formatter'
 require 'html_diff/formatters/del_ins_formatter'
 require 'html_diff/formatters/span_formatter'
 require 'html_diff/diff_builder' # deprecated
@@ -22,15 +22,15 @@ module HTMLDiff
   # @option formatter [Object] An optional object which responds to `format`,
   #   which renders the LCS-diff output.
   # @return [String] Diff of the two strings with additions and deletions marked.
-  def diff(old_string, new_string, tokenizer: nil, format: nil, formatter: nil)
+  def diff(old_string, new_string, tokenizer: nil, html_format: nil, formatter: nil)
     tokenizer ||= Tokenizer
     old_tokens = tokenizer.tokenize(old_string)
     new_tokens = tokenizer.tokenize(new_string)
 
     changes = Differ.diff(old_tokens, new_tokens)
 
-    if format
-      Formatters::GenericFormatter.format(changes, **format)
+    if html_format
+      Formatters::HtmlFormatter.format(changes, **html_format)
     else
       formatter ||= Formatters::DelInsFormatter
       formatter.format(changes)

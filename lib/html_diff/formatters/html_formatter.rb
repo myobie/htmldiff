@@ -3,7 +3,7 @@
 module HTMLDiff
   module Formatters
     # Renders the diff as HTML with customizable tags and classes.
-    module GenericFormatter
+    module HtmlFormatter
       extend self
 
       # Format a sequence of changes from LcsDiff into HTML
@@ -70,16 +70,18 @@ module HTMLDiff
 
       # Render an HTML tag
       #
-      # @param tag_name [String] HTML tag to use
+      # @param tag [String] HTML tag to use
       # @param css_class [String] The CSS class(es) for the tag
       # @param content [String] The words to insert
       # @return [String] HTML markup with appropriate tags
-      def html_tag(tag_name, css_class, content)
+      def html_tag(tag, css_class, content)
         return '' unless content
 
+        tag = tag.delete_prefix('<')
+        tag = tag.delete_suffix('>')
         css_class = css_class.join(' ') if css_class.is_a?(Array)
         css_class = nil if css_class&.empty?
-        "<#{tag_name}#{%( class="#{css_class}") if css_class}>#{content}</#{tag_name}>"
+        "<#{tag}#{%( class="#{css_class}") if css_class}>#{content}</#{tag}>"
       end
     end
   end

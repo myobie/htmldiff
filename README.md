@@ -49,19 +49,82 @@ Output:
 The <del class="diffdel">quick </del>fox <del class="diffmod">jumped</del><ins class="diffmod">hopped</ins> over the <ins class="diffins">lazy</ins> dog.
 ```
 
-### Formatting Using HTML Spans
+### Formatting the HTML Output
 
-As an alternative to the default `<del>` and `<ins>` tags,
-HTMLDiff provides an alternative formatter to use `<span>` tags:
+HTMLDiff includes a highly customizable `HtmlFormatter` that gives you fine-grained control over the HTML output. This formatter allows you to specify different HTML tags and CSS classes for various diff elements.
 
 ```ruby
-diff = HTMLDiff.diff(old_text, new_text, formatter: HTMLDiff::Formatters::SpanFormatter)
+old_text = "The quick red fox jumped over the dog."
+new_text = "The red fox hopped over the lazy dog."
+
+diff = HTMLDiff.diff(old_text, new_text, html_format: {
+  tag: 'span',
+  class_delete: 'highlight removed',
+  class_insert: 'highlight added'
+})
+```
+
+Output:
+```html
+The <span class="highlight removed">quick </span>red fox <span class="highlight removed">jumped</span><span class="highlight added">hopped</span> over the <span class="highlight added">lazy</span> dog.
+```
+
+#### Customization Options
+
+`HTMLDiff.diff(format:)` supports the following options:
+
+| Option                  | Description                                                                                                |
+|-------------------------|------------------------------------------------------------------------------------------------------------|
+| `:tag`                  | Base HTML tag to use for all change nodes (default: none)                                                  |
+| `:tag_delete`           | HTML tag for deleted content (overrides `:tag`, default: `"del"`)                                          |
+| `:tag_insert`           | HTML tag for inserted content (overrides `:tag`, default: `"ins"`)                                         |
+| `:tag_replace`          | HTML tag for replaced content (overrides `:tag_delete`, `:tag`)                                            |
+| `:tag_replace_delete`   | HTML tag for deleted content in replacements (overrides `:tag_replace`, `:tag_delete`, `:tag`)             |
+| `:tag_replace_insert`   | HTML tag for inserted content in replacements (overrides `:tag_replace`, `:tag_insert`, `:tag`)            |
+| `:tag_equal`            | HTML tag for unchanged content (optional)                                                                  |
+| `:class`                | Base CSS class(es) for all change nodes                                                                    |
+| `:class_delete`         | CSS class(es) for deleted content (overrides `:class`)                                                     | 
+| `:class_insert`         | CSS class(es) for inserted content (overrides `:class`)                                                    |
+| `:class_replace`        | CSS class(es) for replaced content (overrides `:class_delete`, `:class_insert`, `:class`)                  |
+| `:class_replace_delete` | CSS class(es) for deleted content in replacements (overrides `:class_replace`, `:class_delete`, `:class`)  |
+| `:class_replace_insert` | CSS class(es) for inserted content in replacements (overrides `:class_replace`, `:class_insert`, `:class`) |
+
+#### Example: Including unchanged text in tags
+
+```ruby
+diff = HTMLDiff.diff(old_text, new_text, html_format: {
+  tag_equal: 'span',
+  class_equal: 'unchanged',
+  tag_delete: 'span',
+  class_delete: 'deleted',
+  tag_insert: 'span',
+  class_insert: 'inserted'
+})
 ```
 
 Output:
 
 ```html
-The <span class="diff-del">quick </span>fox <span class="diff-mod diff-del">jumped</span><span class="diff-mod diff-ins">hopped</span> over the <span class="diff-ins">lazy</span> dog.
+<span class="unchanged">The </span><span class="deleted">quick </span><span class="unchanged">red fox </span><span class="deleted">jumped</span><span class="inserted">hopped</span><span class="unchanged"> over the </span><span class="inserted">lazy</span><span class="unchanged"> dog.</span>
+```
+
+#### Example: Special handling for replacements
+
+```ruby
+diff = HTMLDiff.diff(old_text, new_text, html_format: {
+  tag_delete: 'span',
+  class_delete: 'deleted',
+  tag_insert: 'span',
+  class_insert: 'inserted',
+  tag_replace: 'mark',
+  class_replace: 'replaced'
+})
+```
+
+Output:
+
+```html
+The <span class="deleted">quick </span>red fox <mark class="replaced">jumped</mark><mark class="replaced">hopped</mark> over the <span class="inserted">lazy</span> dog.
 ```
 
 ### Using a Custom Output Formatter
