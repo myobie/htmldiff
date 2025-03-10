@@ -5,7 +5,7 @@ require_relative 'spec_helper'
 RSpec.describe HTMLDiff do
   it "should diff text" do
     diff = described_class.diff('a word is here', 'a nother word is there')
-    expect(diff).to eq("a<ins class=\"diffins\"> nother</ins> word is <del class=\"diffmod\">here</del><ins class=\"diffmod\">there</ins>")
+    expect(diff).to eq("a <ins class=\"diffins\">nother </ins>word is <del class=\"diffmod\">here</del><ins class=\"diffmod\">there</ins>")
   end
 
   it "should insert a letter and a space" do
@@ -43,20 +43,16 @@ RSpec.describe HTMLDiff do
   it "should support escaped HTML" do
     diff = described_class.diff('&lt;div&gt;this &lt;span tag=1 class="foo"&gt;is a sentence&lt;/span&gt; test&lt;/div&gt;',
                                 '&lt;div&gt;this &lt;span class="bar" tag=2&gt;is a string&lt;/label&gt; also a test&lt;/label&gt;')
-    expect(diff).to eq("&lt;div&gt;this &lt;span <del class=\"diffdel\">tag=1 </del>class=\"<del class=\"diffmod\">foo</del><ins class=\"diffmod\">bar</ins>\"<ins class=\"diffins\"> tag=2</ins>&gt;is a <del class=\"diffmod\">sentence</del><ins class=\"diffmod\">string</ins>&lt;/<del class=\"diffmod\">span</del><ins class=\"diffmod\">label</ins>&gt;<ins class=\"diffins\"> also a</ins> test&lt;/<del class=\"diffmod\">div</del><ins class=\"diffmod\">label</ins>&gt;")
+    expect(diff).to eq("&lt;div&gt;this &lt;span <del class=\"diffdel\">tag=1 </del>class=\"<del class=\"diffmod\">foo</del><ins class=\"diffmod\">bar</ins>\"<ins class=\"diffins\"> tag=2</ins>&gt;is a <del class=\"diffmod\">sentence</del><ins class=\"diffmod\">string</ins>&lt;/<del class=\"diffmod\">span</del><ins class=\"diffmod\">label</ins>&gt; <ins class=\"diffins\">also a </ins>test&lt;/<del class=\"diffmod\">div</del><ins class=\"diffmod\">label</ins>&gt;")
   end
 
   it "should support img tags insertion" do
-    oldv = 'a b c'
-    newv = 'a b <img src="some_url" /> c'
-    diff = described_class.diff(oldv, newv)
+    diff = described_class.diff('a b c', 'a b <img src="some_url" /> c')
     expect(diff).to eq("a b <ins class=\"diffins\"><img src=\"some_url\" /> </ins>c")
   end
 
   it "should support img tags deletion" do
-    oldv = 'a b c'
-    newv = 'a b <img src="some_url" /> c'
-    diff = described_class.diff(newv, oldv)
+    diff = described_class.diff('a b <img src="some_url" /> c', 'a b c')
     expect(diff).to eq("a b <del class=\"diffdel\"><img src=\"some_url\" /> </del>c")
   end
 
@@ -98,12 +94,12 @@ RSpec.describe HTMLDiff do
 
     it "should support Arabic with HTML tags" do
       diff = described_class.diff('<span>النص في العلامة</span>', '<span>النص الجديد في العلامة</span>')
-      expect(diff).to eq("<span>النص<ins class=\"diffins\"> الجديد</ins> في العلامة</span>")
+      expect(diff).to eq("<span>النص <ins class=\"diffins\">الجديد </ins>في العلامة</span>")
     end
 
     it "should handle complex Hebrew changes" do
       diff = described_class.diff('אני אוהב לתכנת בשפת רובי', 'אני אוהב מאוד לתכנת בשפת פייתון')
-      expect(diff).to eq("אני אוהב<ins class=\"diffins\"> מאוד</ins> לתכנת בשפת <del class=\"diffmod\">רובי</del><ins class=\"diffmod\">פייתון</ins>")
+      expect(diff).to eq("אני אוהב <ins class=\"diffins\">מאוד </ins>לתכנת בשפת <del class=\"diffmod\">רובי</del><ins class=\"diffmod\">פייתון</ins>")
     end
 
     it "should support Vietnamese diacritics" do
@@ -111,9 +107,9 @@ RSpec.describe HTMLDiff do
       expect(diff).to eq("Tôi <del class=\"diffmod\">yêu</del><ins class=\"diffmod\">thích</ins> lập trình")
     end
 
-    pending "should handle mixed languages with punctuation" do
+    it "should handle mixed languages with punctuation" do
       diff = described_class.diff('Hello, Привет! مرحبا. שלום', 'Hello, Привет! مرحبا جدا. שלום עולם')
-      expect(diff).to eq("Hello, Привет! <del class=\"diffmod\">مرحبا.</del><ins class=\"diffmod\">مرحبا جدا.</ins> שלום<ins class=\"diffins\"> עולם</ins>")
+      expect(diff).to eq("Hello, Привет! مرحبا<ins class=\"diffins\"> جدا</ins>. שלום<ins class=\"diffins\"> עולם</ins>")
     end
 
     it "should support Greek with formatting tags" do
@@ -231,7 +227,7 @@ RSpec.describe HTMLDiff do
       expect(diff).to eq("Hello नमस्ते <ins class=\"diffins\">मित्र </ins>こんにちは<ins class=\"diffins\"> 世界</ins>")
     end
 
-    pending "should handle mixed languages with HTML tags" do
+    it "should handle mixed languages with HTML tags" do
       diff = described_class.diff('<div>안녕하세요 世界</div>', '<div>안녕하세요 아름다운 世界</div>')
       expect(diff).to eq("<div>안녕하세요 <ins class=\"diffins\">아름다운 </ins>世界</div>")
     end
@@ -255,7 +251,7 @@ RSpec.describe HTMLDiff do
 
     it "should handle entity changes" do
       diff = described_class.diff('&amp; &lt; &gt; &quot; &apos;', '&amp; &lt; &gt; &apos; &quot;')
-      expect(diff).to eq("&amp; &lt; &gt; <ins class=\"diffins\">&apos; </ins>&quot;<del class=\"diffdel\"> &apos;</del>")
+      expect(diff).to eq("&amp; &lt; &gt; <del class=\"diffdel\">&quot; </del>&apos;<ins class=\"diffins\"> &quot;</ins>")
     end
 
     it "should preserve numeric HTML entities" do

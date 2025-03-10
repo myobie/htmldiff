@@ -6,7 +6,6 @@ module HTMLDiff
 
     # The languages here use whitespace delimiters between words.
     WORDCHAR_REGEXP = /[\p{Latin}\p{Greek}\p{Cyrillic}\p{Arabic}\p{Hebrew}\p{Devanagari}\p{Hangul}\p{Armenian}\p{Georgian}\p{Ethiopic}\p{Khmer}\p{Lao}\p{Myanmar}\p{Sinhala}\p{Tamil}\p{Telugu}\p{Kannada}\p{Malayalam}\p{Tibetan}\p{Mongolian}\d]/i
-
     TAG_START_REGEXP = /<[^>]+>/
     URL_REGEXP = %r{(https?://|www\.)[^\s<>"']+}i
     EMAIL_REGEXP = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i

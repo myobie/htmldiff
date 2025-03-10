@@ -1,19 +1,22 @@
 # frozen_string_literal: true
 
-Gem::Specification.new do |s|
-  s.name = %q{htmldiff}
-  s.version = '1.0.0'
-  s.authors = ['Nathan Herald']
-  s.email = %q{nathan@myobie.com}
-  s.description = %q{HTML diffs of text}
-  s.summary = %q{HTML diffs of text}
-  s.homepage = %q{http://github.com/myobie/htmldiff}
-  s.license = 'MIT'
+require_relative 'lib/html_diff/version'
 
-  s.add_development_dependency 'rspec', '~> 3.6'
-  s.add_development_dependency 'rake', '~> 12.1'
+Gem::Specification.new do |spec|
+  spec.name = 'htmldiff'
+  spec.version = '1.0.0'
+  spec.authors = ['Nathan Herald']
+  spec.email = 'nathan@myobie.com'
+  spec.summary = 'HTML diffs of text'
+  spec.description = 'Generates diffs of text in HTML format based on the LCS algorithm.'
+  spec.homepage = 'http://github.com/myobie/htmldiff'
+  spec.license = 'MIT'
 
-  s.files         = Dir.glob('lib/**/*') + %w[LICENSE README]
-  s.test_files    = Dir.glob('spec/**/*')
-  s.require_paths = ['lib']
+  spec.add_dependency 'diff-lcs'
+  spec.add_development_dependency 'rspec'
+  spec.add_development_dependency 'rake'
+
+  spec.files         = Dir.glob('lib/**/*') + %w[LICENSE README]
+  spec.test_files    = Dir.glob('spec/**/*')
+  spec.require_paths = ['lib']
 end

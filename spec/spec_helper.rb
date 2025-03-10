@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rspec'
+require 'bundler/setup'
 require 'htmldiff'
 
 RSpec.configure do |config|
