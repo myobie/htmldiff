@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Gem::Specification.new do |s|
   s.name = %q{htmldiff}
   s.version = '1.0.0'
@@ -7,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary = %q{HTML diffs of text}
   s.homepage = %q{http://github.com/myobie/htmldiff}
   s.license = 'MIT'
-  
+
   s.add_development_dependency 'rspec', '~> 3.6'
   s.add_development_dependency 'rake', '~> 12.1'
 
