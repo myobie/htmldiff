@@ -8,3 +8,4 @@ Gemfile.lock
 .bundle
 *.gem
 *.patch
+vendor/bundle/*
