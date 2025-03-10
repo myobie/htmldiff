@@ -6,23 +6,23 @@ module HTMLDiff
   module OperationGenerator
     extend self
 
-    # Generate operations to transform old_words into new_words
+    # Generate operations to transform old_tokens into new_tokens
     #
-    # @param old_words [Array<String>] tokens from the original text
-    # @param new_words [Array<String>] tokens from the new text
+    # @param old_tokens [Array<String>] tokens from the original text
+    # @param new_tokens [Array<String>] tokens from the new text
     # @return [Array<Operation>] sequence of operations
-    def generate_operations(old_words, new_words)
+    def generate_operations(old_tokens, new_tokens)
       position_in_old = position_in_new = 0
       operations = []
 
       # Index all positions of each token in the new sequence for faster lookup
-      word_indices = index_words(new_words)
+      token_indices = index_tokens(new_tokens)
 
       # Find all matching blocks between the two versions
-      matches = find_matching_blocks(old_words, new_words, word_indices)
+      matches = find_matching_blocks(old_tokens, new_tokens, token_indices)
 
       # Add a sentinel match at the end to handle unmatched tails
-      sentinel_match = Match.new(old_words.size, new_words.size, 0)
+      sentinel_match = Match.new(old_tokens.size, new_tokens.size, 0)
       matches << sentinel_match
 
       matches.each do |match|
@@ -56,27 +56,27 @@ module HTMLDiff
 
     private
 
-    # Create an index mapping each word to all positions where it appears
+    # Create an index mapping each token to all positions where it appears
     #
-    # @param words [Array<String>] sequence of tokens
+    # @param tokens [Array<String>] sequence of tokens
     # @return [Hash] hash mapping each token to array of positions
-    def index_words(words)
-      indices = Hash.new { |h, word| h[word] = [] }
-      words.each_with_index { |word, i| indices[word] << i }
+    def index_tokens(tokens)
+      indices = Hash.new { |h, token| h[token] = [] }
+      tokens.each_with_index { |token, i| indices[token] << i }
       indices
     end
 
     # Find all matching blocks between two sequences of tokens
     #
-    # @param old_words [Array<String>] tokens from the original text
-    # @param new_words [Array<String>] tokens from the new text
-    # @param word_indices [Hash] index of positions for tokens in new_words
+    # @param old_tokens [Array<String>] tokens from the original text
+    # @param new_tokens [Array<String>] tokens from the new text
+    # @param token_indices [Hash] index of positions for tokens in new_tokens
     # @return [Array<Match>] array of matching blocks
-    def find_matching_blocks(old_words, new_words, word_indices)
+    def find_matching_blocks(old_tokens, new_tokens, token_indices)
       matching_blocks = []
       find_matching_blocks_recursive(
-        old_words, new_words, word_indices,
-        0, old_words.size, 0, new_words.size,
+        old_tokens, new_tokens, token_indices,
+        0, old_tokens.size, 0, new_tokens.size,
         matching_blocks
       )
       matching_blocks
@@ -84,27 +84,27 @@ module HTMLDiff
 
     # Recursively find matching blocks within a specified range
     #
-    # @param old_words [Array<String>] tokens from the original text
-    # @param new_words [Array<String>] tokens from the new text
-    # @param word_indices [Hash] index of positions for tokens in new_words
-    # @param start_in_old [Integer] start position in old_words
-    # @param end_in_old [Integer] end position in old_words
-    # @param start_in_new [Integer] start position in new_words
-    # @param end_in_new [Integer] end position in new_words
+    # @param old_tokens [Array<String>] tokens from the original text
+    # @param new_tokens [Array<String>] tokens from the new text
+    # @param token_indices [Hash] index of positions for tokens in new_tokens
+    # @param start_in_old [Integer] start position in old_tokens
+    # @param end_in_old [Integer] end position in old_tokens
+    # @param start_in_new [Integer] start position in new_tokens
+    # @param end_in_new [Integer] end position in new_tokens
     # @param matching_blocks [Array<Match>] array to store matches
     def find_matching_blocks_recursive(
-      old_words, new_words, word_indices,
+      old_tokens, new_tokens, token_indices,
       start_in_old, end_in_old, start_in_new, end_in_new,
       matching_blocks
     )
       # Find the largest matching block within the specified range
-      match = find_largest_match(old_words, word_indices, start_in_old, end_in_old, start_in_new, end_in_new)
+      match = find_largest_match(old_tokens, token_indices, start_in_old, end_in_old, start_in_new, end_in_new)
       return unless match
 
       # If there's text before the match, recursively find matches in that range
       if start_in_old < match.start_in_old && start_in_new < match.start_in_new
         find_matching_blocks_recursive(
-          old_words, new_words, word_indices,
+          old_tokens, new_tokens, token_indices,
           start_in_old, match.start_in_old,
           start_in_new, match.start_in_new,
           matching_blocks
@@ -117,7 +117,7 @@ module HTMLDiff
       # If there's text after the match, recursively find matches in that range
       if match.end_in_old < end_in_old && match.end_in_new < end_in_new
         find_matching_blocks_recursive(
-          old_words, new_words, word_indices,
+          old_tokens, new_tokens, token_indices,
           match.end_in_old, end_in_old,
           match.end_in_new, end_in_new,
           matching_blocks
@@ -127,14 +127,14 @@ module HTMLDiff
 
     # Find the largest matching block of text within the specified range
     #
-    # @param old_words [Array<String>] tokens from the original text
-    # @param word_indices [Hash] index of positions for tokens in new_words
-    # @param start_in_old [Integer] start position in old_words
-    # @param end_in_old [Integer] end position in old_words
-    # @param start_in_new [Integer] start position in new_words
-    # @param end_in_new [Integer] end position in new_words
+    # @param old_tokens [Array<String>] tokens from the original text
+    # @param token_indices [Hash] index of positions for tokens in new_tokens
+    # @param start_in_old [Integer] start position in old_tokens
+    # @param end_in_old [Integer] end position in old_tokens
+    # @param start_in_new [Integer] start position in new_tokens
+    # @param end_in_new [Integer] end position in new_tokens
     # @return [Match, nil] the largest match found, or nil if none
-    def find_largest_match(old_words, word_indices, start_in_old, end_in_old, start_in_new, end_in_new)
+    def find_largest_match(old_tokens, token_indices, start_in_old, end_in_old, start_in_new, end_in_new)
       best_match_in_old = start_in_old
       best_match_in_new = start_in_new
       best_match_size = 0
@@ -142,13 +142,13 @@ module HTMLDiff
       # Track the length of matches ending at each position
       match_length_at = Hash.new { |h, index| h[index] = 0 }
 
-      # Iterate through each word in the old version
+      # Iterate through each token in the old version
       (start_in_old...end_in_old).each do |index_in_old|
-        old_word = old_words[index_in_old]
+        old_token = old_tokens[index_in_old]
         new_match_length_at = Hash.new { |h, index| h[index] = 0 }
 
-        # For each position where this word appears in the new version
-        word_indices[old_word].each do |index_in_new|
+        # For each position where this token appears in the new version
+        token_indices[old_token].each do |index_in_new|
           next if index_in_new < start_in_new
           break if index_in_new >= end_in_new
 
@@ -173,10 +173,10 @@ module HTMLDiff
 
     # Determine what operation to perform for the text before a match
     #
-    # @param start_in_old [Integer] start position in old_words
-    # @param end_in_old [Integer] end position in old_words
-    # @param start_in_new [Integer] start position in new_words
-    # @param end_in_new [Integer] end position in new_words
+    # @param start_in_old [Integer] start position in old_tokens
+    # @param end_in_old [Integer] end position in old_tokens
+    # @param start_in_new [Integer] start position in new_tokens
+    # @param end_in_new [Integer] end position in new_tokens
     # @return [Operation, nil] the operation to perform, or nil if none
     def create_operation_before_match(start_in_old, end_in_old, start_in_new, end_in_new)
       if start_in_old < end_in_old && start_in_new < end_in_new
