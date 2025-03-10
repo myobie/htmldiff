@@ -3,8 +3,8 @@ Gem::Specification.new do |s|
   s.version = '1.0.0'
   s.authors = ['Nathan Herald']
   s.email = %q{nathan@myobie.com}
-  s.description = %q{HTML diffs of text (borrowed from a wiki software I no longer remember)}
-  s.summary = %q{HTML diffs of text (borrowed from a wiki software I no longer remember)}
+  s.description = %q{HTML diffs of text}
+  s.summary = %q{HTML diffs of text}
   s.homepage = %q{http://github.com/myobie/htmldiff}
   s.license = 'MIT'
   
