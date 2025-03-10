@@ -132,5 +132,113 @@ RSpec.describe HTMLDiff::Tokenizer do
         expect(tokens).to eq(["&nbsp;", "&copy;"])
       end
     end
+
+    context "with email addresses" do
+      it "tokenizes simple email addresses" do
+        tokens = HTMLDiff::Tokenizer.tokenize("user@example.com")
+        expect(tokens).to eq(["user@example.com"])
+      end
+
+      it "tokenizes email addresses with dots in username" do
+        tokens = HTMLDiff::Tokenizer.tokenize("first.last@example.com")
+        expect(tokens).to eq(["first.last@example.com"])
+      end
+
+      it "tokenizes email addresses with plus signs" do
+        tokens = HTMLDiff::Tokenizer.tokenize("user+tag@example.com")
+        expect(tokens).to eq(["user+tag@example.com"])
+      end
+
+      it "tokenizes email addresses with subdomains" do
+        tokens = HTMLDiff::Tokenizer.tokenize("user@subdomain.example.com")
+        expect(tokens).to eq(["user@subdomain.example.com"])
+      end
+
+      it "tokenizes email addresses with different TLDs" do
+        tokens = HTMLDiff::Tokenizer.tokenize("user@example.org user@example.net")
+        expect(tokens).to eq(["user@example.org", " ", "user@example.net"])
+      end
+
+      it "handles email addresses within text" do
+        tokens = HTMLDiff::Tokenizer.tokenize("Contact us at support@example.com for help.")
+        expect(tokens).to eq(["Contact", " ", "us", " ", "at", " ", "support@example.com", " ", "for", " ", "help", "."])
+      end
+
+      it "handles email addresses in HTML attributes" do
+        tokens = HTMLDiff::Tokenizer.tokenize('<a href="mailto:contact@example.com">Email us</a>')
+        expect(tokens).to eq(['<a href="mailto:contact@example.com">', "Email", " ", "us", "</a>"])
+      end
+    end
+
+    context "with URLs" do
+      it "tokenizes simple HTTP URLs" do
+        tokens = HTMLDiff::Tokenizer.tokenize("http://example.com")
+        expect(tokens).to eq(["http://example.com"])
+      end
+
+      it "tokenizes simple HTTPS URLs" do
+        tokens = HTMLDiff::Tokenizer.tokenize("https://example.com")
+        expect(tokens).to eq(["https://example.com"])
+      end
+
+      it "tokenizes URLs with www prefix" do
+        tokens = HTMLDiff::Tokenizer.tokenize("www.example.com")
+        expect(tokens).to eq(["www.example.com"])
+      end
+
+      it "tokenizes URLs with paths" do
+        tokens = HTMLDiff::Tokenizer.tokenize("https://example.com/path/to/resource")
+        expect(tokens).to eq(["https://example.com/path/to/resource"])
+      end
+
+      it "tokenizes URLs with query parameters" do
+        tokens = HTMLDiff::Tokenizer.tokenize("https://example.com/search?q=term&page=2")
+        expect(tokens).to eq(["https://example.com/search?q=term&page=2"])
+      end
+
+      it "tokenizes URLs with fragments" do
+        tokens = HTMLDiff::Tokenizer.tokenize("https://example.com/page#section")
+        expect(tokens).to eq(["https://example.com/page#section"])
+      end
+
+      it "handles URLs within text" do
+        tokens = HTMLDiff::Tokenizer.tokenize("Visit https://example.com for more information.")
+        expect(tokens).to eq(["Visit", " ", "https://example.com", " ", "for", " ", "more", " ", "information", "."])
+      end
+
+      it "handles URLs in HTML attributes" do
+        tokens = HTMLDiff::Tokenizer.tokenize('<a href="https://example.com">Visit our site</a>')
+        expect(tokens).to eq(['<a href="https://example.com">', "Visit", " ", "our", " ", "site", "</a>"])
+      end
+    end
+
+    context "with mixed emails and URLs" do
+      it "correctly tokenizes text with both emails and URLs" do
+        text = "Contact us at support@example.com or visit https://example.com/support"
+        tokens = HTMLDiff::Tokenizer.tokenize(text)
+        expect(tokens).to eq([
+                               "Contact", " ", "us", " ", "at", " ", "support@example.com", " ",
+                               "or", " ", "visit", " ", "https://example.com/support"
+                             ])
+      end
+
+      it "handles email addresses and URLs in HTML" do
+        html = '<p>Visit <a href="https://example.com">our website</a> or email <a href="mailto:info@example.com">info@example.com</a></p>'
+        tokens = HTMLDiff::Tokenizer.tokenize(html)
+        expect(tokens).to eq([
+                               "<p>", "Visit", " ", '<a href="https://example.com">', "our", " ", "website", "</a>", " ",
+                               "or", " ", "email", " ", '<a href="mailto:info@example.com">', "info@example.com", "</a>", "</p>"
+                             ])
+      end
+
+      it "handles edge cases with emails and URLs" do
+        text = "User (user.name+tag@example.com) shared https://example.com/path?param=value#fragment"
+        tokens = HTMLDiff::Tokenizer.tokenize(text)
+        expect(tokens).to eq([
+                               "User", " ", "(", "user.name+tag@example.com", ")", " ",
+                               "shared", " ", "https://example.com/path?param=value#fragment"
+                             ])
+      end
+    end
   end
 end

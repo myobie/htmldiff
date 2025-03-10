@@ -15,8 +15,11 @@ module HTMLDiff
     # PHONE_REGEXP = /(?:\+\d{1,3}[- ]?)?\(?(?:\d{1,4})\)?[- ]?(?:\d{1,4})[- ]?(?:\d{1,4})/
     HTML_ENTITY_REGEXP = /&([a-zA-Z0-9]+|#[0-9]{1,6}|#x[0-9a-fA-F]{1,6});/
 
+    # HTML Tag detection
+    TAG_START_REGEXP = /<[^>]+>/
+
     def tokenize(string)
-      # Extract special entities first
+      # Extract special entities including HTML tags (with priority for tags)
       entities = extract_special_entities(string)
 
       # Process the string with entities treated as special tokens
@@ -44,21 +47,8 @@ module HTMLDiff
         char = string[position]
 
         case mode
-        when :tag
-          if end_of_tag?(char)
-            current_word << '>'
-            words << current_word unless current_word.empty?
-            current_word = +''
-            mode = :wordchar
-          else
-            current_word << char
-          end
         when :wordchar
-          if start_of_tag?(char)
-            words << current_word unless current_word.empty?
-            current_word = +'<'
-            mode = :tag
-          elsif wordchar?(char)
+          if wordchar?(char)
             current_word << char
           else
             words << current_word unless current_word.empty?
@@ -67,13 +57,8 @@ module HTMLDiff
           end
         when :other
           words << current_word unless current_word.empty?
-          if start_of_tag?(char)
-            current_word = +'<'
-            mode = :tag
-          else
-            current_word = char
-            mode = :wordchar if wordchar?(char)
-          end
+          current_word = char
+          mode = :wordchar if wordchar?(char)
         else
           raise "Unknown mode #{mode.inspect}"
         end
@@ -90,48 +75,71 @@ module HTMLDiff
     def extract_special_entities(string)
       entities = []
 
-      # Extract HTML entities (these have priority)
+      # Extract HTML tags first (highest priority)
+      extract_tags(string, entities)
+
+      # Then extract other special entities (but only outside of tags)
+      tag_ranges = entities.select { |entity, _, _| entity.start_with?('<') && entity.end_with?('>') }
+                           .map { |_, start_pos, end_pos| (start_pos...end_pos) }
+
+      # Extract HTML entities (but only outside of tags)
       string.scan(HTML_ENTITY_REGEXP) do |match|
         full_match = "&#{match[0]};"
         start_pos = Regexp.last_match.offset(0)[0]
         end_pos = start_pos + full_match.length
-        entities << [full_match, start_pos, end_pos]
+
+        # Only add if not inside a tag
+        unless inside_any_range?(start_pos, tag_ranges)
+          entities << [full_match, start_pos, end_pos]
+        end
       end
 
-      # Extract URLs
+      # Extract URLs (but only outside of tags)
       string.scan(URL_REGEXP) do
         full_match = Regexp.last_match[0]
         start_pos = Regexp.last_match.offset(0)[0]
         end_pos = start_pos + full_match.length
-        entities << [full_match, start_pos, end_pos]
+
+        # Only add if not inside a tag
+        unless inside_any_range?(start_pos, tag_ranges)
+          entities << [full_match, start_pos, end_pos]
+        end
       end
 
-      # Extract emails
+      # Extract emails (but only outside of tags)
       string.scan(EMAIL_REGEXP) do
         full_match = Regexp.last_match[0]
         start_pos = Regexp.last_match.offset(0)[0]
         end_pos = start_pos + full_match.length
-        entities << [full_match, start_pos, end_pos]
-      end
 
-      # Extract phone numbers
-      # string.scan(PHONE_REGEXP) do
-      #   full_match = Regexp.last_match[0]
-      #   start_pos = Regexp.last_match.offset(0)[0]
-      #   end_pos = start_pos + full_match.length
-      #   entities << [full_match, start_pos, end_pos]
-      # end
+        # Only add if not inside a tag
+        unless inside_any_range?(start_pos, tag_ranges)
+          entities << [full_match, start_pos, end_pos]
+        end
+      end
 
       # Sort by start position to ensure we process them in order
       entities.sort_by { |_, start_pos, _| start_pos }
     end
 
-    def end_of_tag?(char)
-      char == '>'
+    def extract_tags(string, entities)
+      # Parse string character by character to properly handle nested tags
+      in_tag = false
+      tag_start = 0
+
+      string.chars.each_with_index do |char, i|
+        if char == '<' && !in_tag
+          in_tag = true
+          tag_start = i
+        elsif char == '>' && in_tag
+          in_tag = false
+          entities << [string[tag_start..i], tag_start, i + 1]
+        end
+      end
     end
 
-    def start_of_tag?(char)
-      char == '<'
+    def inside_any_range?(position, ranges)
+      ranges.any? { |range| range.cover?(position) }
     end
 
     def wordchar?(char)
