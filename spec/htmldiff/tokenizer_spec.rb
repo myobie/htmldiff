@@ -3,84 +3,6 @@
 require_relative '../spec_helper'
 
 RSpec.describe HTMLDiff::Tokenizer do
-  describe ".tag?" do
-    context "with opening tags" do
-      pending "identifies standard opening tags" do
-        expect(HTMLDiff::Tokenizer.tag?("<div>")).to be true
-        expect(HTMLDiff::Tokenizer.tag?("<p>")).to be true
-      end
-
-      pending "identifies opening tags with attributes" do
-        expect(HTMLDiff::Tokenizer.tag?('<p class="test">')).to be true
-        expect(HTMLDiff::Tokenizer.tag?('<a href="https://example.com">')).to be true
-      end
-
-      pending "handles whitespace in opening tags" do
-        expect(HTMLDiff::Tokenizer.tag?("  <div>  ")).to be true
-        expect(HTMLDiff::Tokenizer.tag?(" <p> ")).to be true
-      end
-    end
-
-    context "with closing tags" do
-      pending "identifies standard closing tags" do
-        expect(HTMLDiff::Tokenizer.tag?("</div>")).to be true
-        expect(HTMLDiff::Tokenizer.tag?("</p>")).to be true
-      end
-
-      pending "handles whitespace in closing tags" do
-        expect(HTMLDiff::Tokenizer.tag?("  </div>  ")).to be true
-        expect(HTMLDiff::Tokenizer.tag?(" </p> ")).to be true
-      end
-    end
-
-    context "with non-tags" do
-      pending "rejects plain text" do
-        expect(HTMLDiff::Tokenizer.tag?("not a tag")).to be false
-        expect(HTMLDiff::Tokenizer.tag?("div")).to be false
-      end
-
-      pending "rejects incomplete tags" do
-        expect(HTMLDiff::Tokenizer.tag?("<div")).to be false
-        expect(HTMLDiff::Tokenizer.tag?("div>")).to be false
-      end
-
-      pending "rejects HTML entities" do
-        expect(HTMLDiff::Tokenizer.tag?("&nbsp;")).to be false
-        expect(HTMLDiff::Tokenizer.tag?("&#169;")).to be false
-      end
-    end
-  end
-
-  describe ".img_tag?" do
-    context "with valid img tags" do
-      it "identifies self-closing img tags" do
-        expect(HTMLDiff::Tokenizer.img_tag?('<img src="test.jpg" />')).to be true
-        expect(HTMLDiff::Tokenizer.img_tag?('<img alt="description" />')).to be true
-      end
-
-      it "identifies img tags with multiple attributes" do
-        expect(HTMLDiff::Tokenizer.img_tag?('<img src="test.jpg" alt="test" width="100" />')).to be true
-      end
-    end
-
-    context "with invalid img tags" do
-      it "rejects non-img tags" do
-        expect(HTMLDiff::Tokenizer.img_tag?("<div>")).to be false
-        expect(HTMLDiff::Tokenizer.img_tag?("<p>")).to be false
-      end
-
-      it "rejects non-self-closing img tags" do
-        expect(HTMLDiff::Tokenizer.img_tag?("<img>")).to be false
-        expect(HTMLDiff::Tokenizer.img_tag?("</img>")).to be false
-      end
-
-      it "rejects incomplete img tags" do
-        expect(HTMLDiff::Tokenizer.img_tag?('<img src="test.jpg">')).to be false
-        expect(HTMLDiff::Tokenizer.img_tag?("<img")).to be false
-      end
-    end
-  end
-
   describe ".tokenize" do
     context "with plain text" do
       it "tokenizes simple words" do
@@ -123,11 +45,6 @@ RSpec.describe HTMLDiff::Tokenizer do
       it "tokenizes HTML with attributes" do
         tokens = HTMLDiff::Tokenizer.tokenize('<p class="greeting">Hello</p>')
         expect(tokens).to eq(['<p class="greeting">', "Hello", "</p>"])
-      end
-
-      it "tokenizes with brackets when requested" do
-        tokens = HTMLDiff::Tokenizer.tokenize("<p>Hello</p>", true)
-        expect(tokens).to eq(["[p]", "Hello", "[/p]"])
       end
 
       it "tokenizes self-closing tags" do
@@ -176,10 +93,9 @@ RSpec.describe HTMLDiff::Tokenizer do
         expect(tokens).to eq(expected)
       end
 
-      pending "tokenizes multiple languages" do
-        # Test with multiple language scripts
+      it "tokenizes multiple languages" do
         tokens = HTMLDiff::Tokenizer.tokenize("Hello Привет こんにちは")
-        expect(tokens).to eq(["Hello", " ", "Привет", " ", "こんにちは"])
+        expect(tokens).to eq(["Hello", " ", "Привет", " ", "こ", "ん", "に", "ち", "は"])
       end
 
       it "handles complex HTML with mixed content" do

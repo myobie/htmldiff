@@ -9,17 +9,7 @@ module HTMLDiff
     # specialized function.
     WORDCHAR_REGEXP = /[\p{Latin}\p{Greek}\p{Cyrillic}\p{Arabic}\p{Hebrew}\p{Devanagari}\p{Hangul}\p{Armenian}\p{Georgian}\p{Ethiopic}\p{Khmer}\p{Lao}\p{Myanmar}\p{Sinhala}\p{Tamil}\p{Telugu}\p{Kannada}\p{Malayalam}\p{Tibetan}\p{Mongolian}\d@#.-]/i
 
-    # TODO: Make private
-    def tag?(item)
-      opening_tag?(item) or closing_tag?(item)
-    end
-
-    # TODO: Make private
-    def img_tag?(item)
-      (item[0..4].downcase == '<img ') && (item[-2..-1].downcase == '/>')
-    end
-
-    def tokenize(string, use_brackets = false)
+    def tokenize(string)
       mode = :wordchar
       current_word = +''
       words = []
@@ -28,7 +18,7 @@ module HTMLDiff
         case mode
         when :tag
           if end_of_tag?(char)
-            current_word << (use_brackets ? ']' : '>')
+            current_word << '>'
             words << current_word unless current_word.empty?
             current_word = +''
             mode = :wordchar
@@ -51,7 +41,7 @@ module HTMLDiff
         when :wordchar
           if start_of_tag?(char)
             words << current_word unless current_word.empty?
-            current_word = use_brackets ? +'[' : +'<'
+            current_word = +'<'
             mode = :tag
           elsif start_of_html_entity?(char)
             words << current_word unless current_word.empty?
@@ -67,7 +57,7 @@ module HTMLDiff
         when :other
           words << current_word unless current_word.empty?
           if start_of_tag?(char)
-            current_word = use_brackets ? +'[' : +'<'
+            current_word = +'<'
             mode = :tag
           elsif start_of_html_entity?(char)
             current_word = char
@@ -105,14 +95,6 @@ module HTMLDiff
 
     def start_of_html_entity?(char)
       char == '&'
-    end
-
-    def opening_tag?(item)
-      item =~ %r!^\s*<[^>]+>\s*$!
-    end
-
-    def closing_tag?(item)
-      item =~ %r!^\s*</[^>]+>\s*$!
     end
   end
 end

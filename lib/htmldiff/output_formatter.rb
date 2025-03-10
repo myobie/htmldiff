@@ -82,7 +82,7 @@ module HTMLDiff
       until words_to_process.empty?
         # Extract consecutive non-tag words or img tags
         non_tags = extract_consecutive_words(words_to_process) do |word|
-          Tokenizer.img_tag?(word) || !Tokenizer.tag?(word)
+          img_tag?(word) || !tag?(word)
         end
 
         unless non_tags.join.empty?
@@ -92,7 +92,7 @@ module HTMLDiff
         break if words_to_process.empty?
 
         # Extract consecutive HTML tags (other than img tags)
-        tags = extract_consecutive_words(words_to_process) { |word| Tokenizer.tag?(word) }
+        tags = extract_consecutive_words(words_to_process) { |word| tag?(word) }
         result += tags
       end
 
@@ -107,6 +107,22 @@ module HTMLDiff
     # @return [String] the wrapped text
     def wrap_with_tag(text, tag_name, css_class)
       %(<#{tag_name} class="#{css_class}">#{text}</#{tag_name}>)
+    end
+
+    def tag?(item)
+      opening_tag?(item) or closing_tag?(item)
+    end
+
+    def img_tag?(item)
+      (item[0..4].downcase == '<img ') && (item[-2..-1].downcase == '/>')
+    end
+
+    def opening_tag?(item)
+      item =~ %r!^\s*<[^>]+>\s*$!
+    end
+
+    def closing_tag?(item)
+      item =~ %r!^\s*</[^>]+>\s*$!
     end
   end
 end

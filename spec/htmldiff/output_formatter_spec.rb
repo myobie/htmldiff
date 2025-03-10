@@ -70,24 +70,6 @@ RSpec.describe HTMLDiff::OutputFormatter do
     end
 
     context "with HTML content" do
-      before do
-        # Set up tag detection for the HTML tests
-        allow(HTMLDiff::Tokenizer).to receive(:tag?).and_call_original
-        allow(HTMLDiff::Tokenizer).to receive(:img_tag?).and_call_original
-
-        # Default behavior for common tags
-        allow(HTMLDiff::Tokenizer).to receive(:tag?).with("<p>").and_return(true)
-        allow(HTMLDiff::Tokenizer).to receive(:tag?).with("</p>").and_return(true)
-        allow(HTMLDiff::Tokenizer).to receive(:tag?).with("<div>").and_return(true)
-        allow(HTMLDiff::Tokenizer).to receive(:tag?).with("</div>").and_return(true)
-        allow(HTMLDiff::Tokenizer).to receive(:tag?).with("<strong>").and_return(true)
-        allow(HTMLDiff::Tokenizer).to receive(:tag?).with("</strong>").and_return(true)
-
-        # Image tag behavior
-        allow(HTMLDiff::Tokenizer).to receive(:img_tag?).with('<img src="test.jpg" />').and_return(true)
-        allow(HTMLDiff::Tokenizer).to receive(:tag?).with('<img src="test.jpg" />').and_return(true)
-      end
-
       it "preserves HTML tags in equal operations" do
         operations = [
           HTMLDiff::Operation.new(:equal, 0, 3, 0, 3)
@@ -163,11 +145,6 @@ RSpec.describe HTMLDiff::OutputFormatter do
 
         old_words = ["<p>", "The", "old", " ", "text", "is", " here", "</p>"]
         new_words = ["<p>", "The", "new", " ", "text", "appears", " here", "</p>"]
-
-        # Mock tag detection
-        allow(HTMLDiff::Tokenizer).to receive(:tag?).with("<p>").and_return(true)
-        allow(HTMLDiff::Tokenizer).to receive(:tag?).with("</p>").and_return(true)
-        allow(HTMLDiff::Tokenizer).to receive(:img_tag?).with(anything).and_return(false)
 
         result = HTMLDiff::OutputFormatter.format(operations, old_words, new_words)
         expect(result).to eq(
