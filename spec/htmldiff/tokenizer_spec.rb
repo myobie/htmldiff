@@ -69,14 +69,14 @@ RSpec.describe HTMLDiff::Tokenizer do
         expect(tokens).to eq(["&#x1F600;", " ", "Emoji"])
       end
 
-      pending "handles non-entity ampersands" do
+      it "handles non-entity ampersands" do
         tokens = HTMLDiff::Tokenizer.tokenize("A & B")
         expect(tokens).to eq(["A", " ", "&", " ", "B"])
       end
 
       it "handles incomplete entities" do
         tokens = HTMLDiff::Tokenizer.tokenize("&incomplete")
-        expect(tokens).to eq(["&incomplete"])
+        expect(tokens).to eq(["&", "incomplete"])
       end
     end
 
