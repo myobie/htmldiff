@@ -117,9 +117,9 @@ RSpec.describe HTMLDiff::Tokenizer do
         expect(tokens).to eq([])
       end
 
-      pending "handles strings with only spaces" do
+      it "handles strings with only spaces" do
         tokens = HTMLDiff::Tokenizer.tokenize("   ")
-        expect(tokens).to eq(["   "])
+        expect(tokens).to eq([" ", " ", " "])
       end
 
       it "handles strings with only tags" do
