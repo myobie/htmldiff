@@ -1,19 +1,19 @@
+# frozen_string_literal: true
+
+require 'bundler/gem_tasks'
 require 'rubygems/package_task'
 require 'rspec/core/rake_task'
 
-spec = Gem::Specification.load(File.expand_path('htmldiff.gemspec', __dir__))
+RSpec::Core::RakeTask.new(:spec)
 
-RSpec::Core::RakeTask.new(:spec) do |t|
-  t.pattern = 'spec/**/*_spec.rb'
+task default: :spec
+
+gemspec = Gem::Specification.load(File.expand_path('htmldiff.gemspec', __dir__))
+Gem::PackageTask.new(gemspec) do |pkg|
+  pkg.gem_spec = gemspec
 end
 
-task :default => :spec
-
-Gem::PackageTask.new(spec) do |pkg|
-  pkg.gem_spec = spec
-end
-
-desc "Install the gem locally"
-task :install => [:package] do
+desc 'Install the gem locally'
+task install: [:package] do
   sh "gem install pkg/#{GEM}-#{GEM_VERSION}.gem"
 end

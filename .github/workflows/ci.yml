@@ -1,27 +1,61 @@
+---
 name: CI
 
-# NOTE: both main and master so it can be swapped later without disruption
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+'on':
+  - push
+  - pull_request
 
 jobs:
-  test:
+  rubocop:
     runs-on: ubuntu-latest
-
+    env:
+      CI: true
     steps:
       - uses: actions/checkout@v3
-
-      - uses: actions/setup-ruby@v1
+      - name: Set up Ruby 3.3
+        uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.2
+          ruby-version: 3.3
+          bundler-cache: true
+      - name: Run RuboCop
+        run: bundle exec rubocop --parallel
 
-      - name: bundle install
-        run: |
-          gem install bundler
-          bundle install --jobs 4 --retry 3
+  test:
+    name: "${{matrix.ruby}} ${{matrix.os || 'ubuntu-latest'}}"
+    env:
+      CI: true
+    runs-on: ${{matrix.os || 'ubuntu-latest'}}
+    continue-on-error: "${{matrix.experimental || false}}"
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby:
+          - ruby-2.7
+          - ruby-3.0
+          - ruby-3.1
+          - ruby-3.2
+          - ruby-3.3
+          - ruby-3.4
+          - jruby-9.4
+          - truffleruby
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+        exclude:
+          - ruby: truffleruby
+            os: windows-latest
 
-      - name: rake spec
+    steps:
+      - name: repo checkout
+        uses: actions/checkout@v3
+      - name: load ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "${{matrix.ruby}}"
+      - name: bundle
+        run: bundle install --jobs 4 --retry 3
+      - name: test
+        timeout-minutes: 60
+        continue-on-error: "${{matrix.experimental || false}}"
         run: bundle exec rake spec
