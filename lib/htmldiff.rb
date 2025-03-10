@@ -3,6 +3,7 @@
 require 'htmldiff/tokenizer'
 require 'htmldiff/match'
 require 'htmldiff/operation'
+require 'htmldiff/operation_generator'
 require 'htmldiff/diff_builder'
 
 module HTMLDiff
