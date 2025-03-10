@@ -81,23 +81,23 @@ The <span class="highlight removed">quick </span>red fox <span class="highlight 
 | `:tag_replace`          | HTML tag for replaced content (overrides `:tag_delete`, `:tag`)                                            |
 | `:tag_replace_delete`   | HTML tag for deleted content in replacements (overrides `:tag_replace`, `:tag_delete`, `:tag`)             |
 | `:tag_replace_insert`   | HTML tag for inserted content in replacements (overrides `:tag_replace`, `:tag_insert`, `:tag`)            |
-| `:tag_equal`            | HTML tag for unchanged content (optional)                                                                  |
+| `:tag_unchanged`        | HTML tag for unchanged content (optional)                                                                  |
 | `:class`                | Base CSS class(es) for all change nodes                                                                    |
 | `:class_delete`         | CSS class(es) for deleted content (overrides `:class`)                                                     | 
 | `:class_insert`         | CSS class(es) for inserted content (overrides `:class`)                                                    |
 | `:class_replace`        | CSS class(es) for replaced content (overrides `:class_delete`, `:class_insert`, `:class`)                  |
 | `:class_replace_delete` | CSS class(es) for deleted content in replacements (overrides `:class_replace`, `:class_delete`, `:class`)  |
 | `:class_replace_insert` | CSS class(es) for inserted content in replacements (overrides `:class_replace`, `:class_insert`, `:class`) |
+| `:class_unchanged`      | CSS class(es) for unchanged content (optional)                                                             |
 
-#### Example: Including unchanged text in tags
+#### Example: Wrapping unchanged text in tags
 
 ```ruby
 diff = HTMLDiff.diff(old_text, new_text, html_format: {
-  tag_equal: 'span',
-  class_equal: 'unchanged',
-  tag_delete: 'span',
+  tag_unchanged: 'span',
+  class_unchanged: 'unchanged',
+  tag: 'span',
   class_delete: 'deleted',
-  tag_insert: 'span',
   class_insert: 'inserted'
 })
 ```
@@ -113,24 +113,28 @@ Output:
 ```ruby
 diff = HTMLDiff.diff(old_text, new_text, html_format: {
   tag_delete: 'span',
-  class_delete: 'deleted',
-  tag_insert: 'span',
-  class_insert: 'inserted',
+  tag_insert: 'div',
   tag_replace: 'mark',
-  class_replace: 'replaced'
+  class_delete: 'deleted',
+  class_insert: 'inserted',
+  class_replace_delete: 'replaced deleted',
+  class_replace_insert: 'replaced inserted'
 })
 ```
 
 Output:
 
 ```html
-The <span class="deleted">quick </span>red fox <mark class="replaced">jumped</mark><mark class="replaced">hopped</mark> over the <span class="inserted">lazy</span> dog.
+The <span class="deleted">quick </span>red fox <mark class="replaced deleted">jumped</mark><mark class="replaced inserted">hopped</mark> over the <div class="inserted">lazy</div> dog.
 ```
 
 ### Using a Custom Output Formatter
 
-You can customize the output format by creating your own formatter.
-Your formatter can be any object that responds to the `#format` method,
+If the HTML formatting options above aren't sufficient for your use case,
+or if you'd like to output to an alternative format (e.g. XML, JSON, etc.),
+you can further customize the output by creating your own formatter.
+
+Your formatter may be any object that responds to the `#format` method,
 and it can return whatever object type you'd like (typically a String).
 
 ```ruby

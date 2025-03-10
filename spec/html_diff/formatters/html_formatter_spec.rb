@@ -26,7 +26,7 @@ RSpec.describe HTMLDiff::Formatters::HtmlFormatter do
       end
     end
 
-    context 'with equal content' do
+    context 'with unchanged content' do
       let(:changes) { [['=', 'This is some text', 'This is some text']] }
 
       it 'preserves unchanged content without markup' do
@@ -94,8 +94,8 @@ RSpec.describe HTMLDiff::Formatters::HtmlFormatter do
     context 'with tags for unchanged text' do
       it 'wraps unchanged text in tags when specified' do
         result = described_class.format(example_changes,
-                                        tag_equal: 'span',
-                                        class_equal: 'unchanged',
+                                        tag_unchanged: 'span',
+                                        class_unchanged: 'unchanged',
                                         tag_delete: 'span',
                                         class_delete: 'deleted',
                                         tag_insert: 'span',
@@ -175,13 +175,13 @@ RSpec.describe HTMLDiff::Formatters::HtmlFormatter do
     end
 
     context 'with nil content' do
-      it 'handles nil old_string in equal action' do
+      it 'handles nil old_string in unchanged action' do
         changes = [['=', nil, 'some text']]
         result = described_class.format(changes)
         expect(result).to eq('some text')
       end
 
-      it 'handles nil new_string in equal action' do
+      it 'handles nil new_string in unchanged action' do
         changes = [['=', 'some text', nil]]
         result = described_class.format(changes)
         expect(result).to eq('')
@@ -234,7 +234,7 @@ RSpec.describe HTMLDiff::Formatters::HtmlFormatter do
     end
 
     context 'with whitespace handling' do
-      it 'preserves whitespace in equal content' do
+      it 'preserves whitespace in unchanged content' do
         changes = [['=', "Line with\nbreaks and    spaces", "Line with\nbreaks and    spaces"]]
         result = described_class.format(changes)
         expect(result).to eq("Line with\nbreaks and    spaces")
