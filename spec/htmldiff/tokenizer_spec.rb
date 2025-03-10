@@ -81,7 +81,7 @@ RSpec.describe HTMLDiff::Tokenizer do
     end
 
     context "with mixed content" do
-      pending "tokenizes mixed text, tags, and entities" do
+      it "tokenizes mixed text, tags, and entities" do
         text = '<p>Hello&nbsp;world! <strong>This</strong> is a test.</p>'
         tokens = HTMLDiff::Tokenizer.tokenize(text)
         
