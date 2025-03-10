@@ -3,7 +3,7 @@
 Gem::Specification.new do |s|
   s.name = %q{htmldiff}
   s.version = '1.0.0'
-  s.authors = ['Nathan Herald']
+  s.authors = ['Nathan Herald', 'Johnny Shields']
   s.email = %q{nathan@myobie.com}
   s.description = %q{HTML diffs of text}
   s.summary = %q{HTML diffs of text}
@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.license = 'MIT'
 
   s.add_development_dependency 'rspec', '~> 3.6'
-  s.add_development_dependency 'rake', '~> 12.1'
+  s.add_development_dependency 'rake', '~> 13.2'
 
   s.files         = Dir.glob('lib/**/*') + %w[LICENSE README]
   s.test_files    = Dir.glob('spec/**/*')
