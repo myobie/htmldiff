@@ -2,7 +2,7 @@
 
 require_relative '../../spec_helper'
 
-RSpec.describe HTMLDiff::Formatters::DelInsFormatter do
+RSpec.describe HTMLDiff::Formatters::GenericFormatter do
   describe '.format' do
     context 'with equal content' do
       let(:changes) { [['=', 'This is some text', 'This is some text']] }
@@ -18,7 +18,7 @@ RSpec.describe HTMLDiff::Formatters::DelInsFormatter do
 
       it 'wraps deleted content in del tags with diffdel class' do
         result = described_class.format(changes)
-        expect(result).to eq('<del class="diffdel">deleted text</del>')
+        expect(result).to eq('<del>deleted text</del>')
       end
     end
 
@@ -27,7 +27,7 @@ RSpec.describe HTMLDiff::Formatters::DelInsFormatter do
 
       it 'wraps added content in ins tags with diffins class' do
         result = described_class.format(changes)
-        expect(result).to eq('<ins class="diffins">added text</ins>')
+        expect(result).to eq('<ins>added text</ins>')
       end
     end
 
@@ -36,7 +36,7 @@ RSpec.describe HTMLDiff::Formatters::DelInsFormatter do
 
       it 'shows both deleted and inserted content with diffmod class' do
         result = described_class.format(changes)
-        expect(result).to eq('<del class="diffmod">old text</del><ins class="diffmod">new text</ins>')
+        expect(result).to eq('<del>old text</del><ins>new text</ins>')
       end
     end
 
@@ -68,13 +68,13 @@ RSpec.describe HTMLDiff::Formatters::DelInsFormatter do
       it 'handles nil old_string in replace action' do
         changes = [['!', nil, 'new text']]
         result = described_class.format(changes)
-        expect(result).to eq('<ins class="diffmod">new text</ins>')
+        expect(result).to eq('<ins>new text</ins>')
       end
 
       it 'handles nil new_string in replace action' do
         changes = [['!', 'old text', nil]]
         result = described_class.format(changes)
-        expect(result).to eq('<del class="diffmod">old text</del>')
+        expect(result).to eq('<del>old text</del>')
       end
     end
 
@@ -92,8 +92,8 @@ RSpec.describe HTMLDiff::Formatters::DelInsFormatter do
 
       it 'formats mixed content correctly' do
         result = described_class.format(changes)
-        expected = 'This is <del class="diffdel">removed </del>and <ins class="diffins">added </ins>' \
-                   '<del class="diffmod">modified text</del><ins class="diffmod">changed text</ins> at the end'
+        expected = 'This is <del>removed </del>and <ins>added </ins>' \
+                   '<del>modified text</del><ins>changed text</ins> at the end'
         expect(result).to eq(expected)
       end
     end
@@ -109,13 +109,13 @@ RSpec.describe HTMLDiff::Formatters::DelInsFormatter do
       it 'safely wraps HTML with del tags when removed' do
         changes = [['-', '<strong>bold</strong>', nil]]
         result = described_class.format(changes)
-        expect(result).to eq('<del class="diffdel"><strong>bold</strong></del>')
+        expect(result).to eq('<del><strong>bold</strong></del>')
       end
 
       it 'safely wraps HTML with ins tags when added' do
         changes = [['+', nil, '<em>emphasis</em>']]
         result = described_class.format(changes)
-        expect(result).to eq('<ins class="diffins"><em>emphasis</em></ins>')
+        expect(result).to eq('<ins><em>emphasis</em></ins>')
       end
     end
 
@@ -138,14 +138,26 @@ RSpec.describe HTMLDiff::Formatters::DelInsFormatter do
       it 'preserves whitespace in removed content' do
         changes = [['-', "Text with\ttabs", nil]]
         result = described_class.format(changes)
-        expect(result).to eq('<del class="diffdel">Text with	tabs</del>')
+        expect(result).to eq('<del>Text with	tabs</del>')
       end
 
       it 'preserves whitespace in added content' do
         changes = [['+', nil, "Text with  \nmultiple spaces"]]
         result = described_class.format(changes)
-        expect(result).to eq("<ins class=\"diffins\">Text with  \nmultiple spaces</ins>")
+        expect(result).to eq("<ins>Text with  \nmultiple spaces</ins>")
       end
+    end
+  end
+
+  describe '.html_tag' do
+    it 'creates an HTML tag with the specified attributes' do
+      result = described_class.send(:html_tag, 'span', 'highlight', 'content')
+      expect(result).to eq('<span class="highlight">content</span>')
+    end
+
+    it 'returns empty string when content is nil' do
+      result = described_class.send(:html_tag, 'span', 'highlight', nil)
+      expect(result).to eq('')
     end
   end
 end
