@@ -17,7 +17,10 @@ module HTMLDiff
   Operation = Struct.new(:action, :start_in_old, :end_in_old, :start_in_new, :end_in_new)
 
   class DiffBuilder
-    WORDCHAR_REGEXP = /[\p{Latin}\p{Greek}\p{Cyrillic}\p{Arabic}\p{Hebrew}\d@#.-]/i
+    # The languages here are those that typically use space delimiters between words.
+    # The characters @.- are added for email support, which could potentially be extracted to a
+    # specialized function.
+    WORDCHAR_REGEXP = /[\p{Latin}\p{Greek}\p{Cyrillic}\p{Arabic}\p{Hebrew}\p{Devanagari}\p{Hangul}\p{Armenian}\p{Georgian}\p{Ethiopic}\p{Khmer}\p{Lao}\p{Myanmar}\p{Sinhala}\p{Tamil}\p{Telugu}\p{Kannada}\p{Malayalam}\p{Tibetan}\p{Mongolian}\d@#.-]/i
 
     def initialize(old_version, new_version)
       @old_version = old_version
@@ -127,7 +130,7 @@ module HTMLDiff
         new_match_length_at = Hash.new { |h, index| h[index] = 0 }
 
         @word_indices[@old_words[index_in_old]].each do |index_in_new|
-          next  if index_in_new < start_in_new
+          next if index_in_new < start_in_new
           break if index_in_new >= end_in_new
 
           new_match_length = match_length_at[index_in_new - 1] + 1
@@ -283,7 +286,7 @@ module HTMLDiff
         when :tag
           if end_of_tag?(char)
             current_word << (use_brackets ? ']' : '>')
-            words << current_word
+            words << current_word unless current_word.empty?
             current_word = +''
             mode = :wordchar
           else
@@ -292,34 +295,34 @@ module HTMLDiff
         when :html_entity
           current_word << char
           if char == ';'
-            words << current_word
+            words << current_word unless current_word.empty?
             current_word = +''
             mode = :wordchar
           elsif !html_entity_char?(char)
             # This wasn't actually an HTML entity, just an ampersand followed by non-entity chars
             # Treat it as a regular word
-            words << current_word
+            words << current_word unless current_word.empty?
             current_word = char
             mode = wordchar?(char) ? :wordchar : :other
           end
         when :wordchar
           if start_of_tag?(char)
-            words << current_word
+            words << current_word unless current_word.empty?
             current_word = use_brackets ? +'[' : +'<'
             mode = :tag
           elsif start_of_html_entity?(char)
-            words << current_word
+            words << current_word unless current_word.empty?
             current_word = char
             mode = :html_entity
           elsif wordchar?(char)
             current_word << char
           else
-            words << current_word
+            words << current_word unless current_word.empty?
             current_word = char
             mode = :other
           end
         when :other
-          words << current_word
+          words << current_word unless current_word.empty?
           if start_of_tag?(char)
             current_word = use_brackets ? +'[' : +'<'
             mode = :tag
@@ -335,7 +338,7 @@ module HTMLDiff
         end
       end
 
-      words << current_word
+      words << current_word unless current_word.empty?
       words
     end
   end

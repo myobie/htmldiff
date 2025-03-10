@@ -33,86 +33,6 @@ describe "htmldiff" do
     diff.should == "blåbær <del class=\"diffmod\">dèjá</del><ins class=\"diffmod\">deja</ins> vu"
   end
 
-  it "should support Chinese" do
-    diff = TestDiff.diff('这个是中文内容, Ruby is the bast', '这是中国语内容，Ruby is the best language.')
-    diff.should == "这<del class=\"diffdel\">个</del>是中<del class=\"diffmod\">文</del><ins class=\"diffmod\">国语</ins>内容<del class=\"diffmod\">, </del><ins class=\"diffmod\">，</ins>Ruby is the <del class=\"diffmod\">bast</del><ins class=\"diffmod\">best language.</ins>"
-  end
-
-  it "should support Cyrillic" do
-    diff = TestDiff.diff('Привет, как дела?', 'Привет, хорошо дела!')
-    diff.should == "Привет, <del class=\"diffmod\">как</del><ins class=\"diffmod\">хорошо</ins> дела<del class=\"diffmod\">?</del><ins class=\"diffmod\">!</ins>"
-  end
-
-  it "should support Greek" do
-    diff = TestDiff.diff('Καλημέρα κόσμε', 'Καλησπέρα κόσμε')
-    diff.should == "<del class=\"diffmod\">Καλημέρα</del><ins class=\"diffmod\">Καλησπέρα</ins> κόσμε"
-  end
-
-  it "should support Arabic" do
-    diff = TestDiff.diff('مرحبا بالعالم', 'مرحبا جميل بالعالم')
-    diff.should == "مرحبا <ins class=\"diffins\">جميل </ins>بالعالم"
-  end
-
-  it "should support Hebrew" do
-    diff = TestDiff.diff('שלום עולם', 'שלום עולם קטן')
-    diff.should == "שלום עולם<ins class=\"diffins\"> קטן</ins>"
-  end
-
-  it "should support Vietnamese" do
-    diff = TestDiff.diff('Xin chào thế giới', 'Xin chào thế giới mới')
-    diff.should == "Xin chào thế giới<ins class=\"diffins\"> mới</ins>"
-  end
-
-  it "should handle mixed scripts" do
-    diff = TestDiff.diff('Hello مرحبا Привет', 'Hello مرحبا جدا Привет')
-    diff.should == "Hello مرحبا <ins class=\"diffins\">جدا </ins>Привет"
-  end
-
-  it "should support Cyrillic with HTML tags" do
-    diff = TestDiff.diff('<div>Текст в теге</div>', '<div>Новый текст в теге</div>')
-    diff.should == "<div><del class=\"diffmod\">Текст</del><ins class=\"diffmod\">Новый текст</ins> в теге</div>"
-  end
-
-  it "should support Arabic with HTML tags" do
-    diff = TestDiff.diff('<span>النص في العلامة</span>', '<span>النص الجديد في العلامة</span>')
-    diff.should == "<span>النص<ins class=\"diffins\"> الجديد</ins> في العلامة</span>"
-  end
-
-  it "should handle complex Hebrew changes" do
-    diff = TestDiff.diff('אני אוהב לתכנת בשפת רובי', 'אני אוהב מאוד לתכנת בשפת פייתון')
-    diff.should == "אני אוהב<ins class=\"diffins\"> מאוד</ins> לתכנת בשפת <del class=\"diffmod\">רובי</del><ins class=\"diffmod\">פייתון</ins>"
-  end
-
-  it "should support Vietnamese diacritics" do
-    diff = TestDiff.diff('Tôi yêu lập trình', 'Tôi thích lập trình')
-    diff.should == "Tôi <del class=\"diffmod\">yêu</del><ins class=\"diffmod\">thích</ins> lập trình"
-  end
-
-  it "should handle mixed languages with punctuation" do
-    diff = TestDiff.diff('Hello, Привет! مرحبا. שלום', 'Hello, Привет! مرحبا جدا. שלום עולם')
-    diff.should == "Hello, Привет! <del class=\"diffmod\">مرحبا.</del><ins class=\"diffmod\">مرحبا جدا.</ins> שלום<ins class=\"diffins\"> עולם</ins>"
-  end
-
-  it "should support Greek with formatting tags" do
-    diff = TestDiff.diff('<b>Γεια σας</b> κόσμε', '<b>Γεια σου</b> κόσμε')
-    diff.should == "<b>Γεια <del class=\"diffmod\">σας</del><ins class=\"diffmod\">σου</ins></b> κόσμε"
-  end
-
-  it "should detect changes within Arabic words" do
-    diff = TestDiff.diff('البرمجة ممتعة', 'البرمجة سهلة')
-    diff.should == "البرمجة <del class=\"diffmod\">ممتعة</del><ins class=\"diffmod\">سهلة</ins>"
-  end
-
-  it "should properly handle RTL text with HTML" do
-    diff = TestDiff.diff('<div dir="rtl">שלום עולם</div>', '<div dir="rtl">שלום חבר</div>')
-    diff.should == "<div dir=\"rtl\">שלום <del class=\"diffmod\">עולם</del><ins class=\"diffmod\">חבר</ins></div>"
-  end
-
-  it "should handle multi-word changes in Vietnamese" do
-    diff = TestDiff.diff('Tôi đang học Ruby', 'Tôi đang học Python rất vui')
-    diff.should == "Tôi đang học <del class=\"diffmod\">Ruby</del><ins class=\"diffmod\">Python rất vui</ins>"
-  end
-
   it "should support email addresses" do
     diff = TestDiff.diff('I sent an email to foo@bar.com!',
                          'I sent an email to baz@bar.com!',)
@@ -143,6 +63,193 @@ describe "htmldiff" do
     newv = 'a b <img src="some_url" /> c'
     diff = TestDiff.diff(newv, oldv)
     diff.should == "a b <del class=\"diffdel\"><img src=\"some_url\" /> </del>c"
+  end
+
+  describe "multi-language support" do
+    it "should support Cyrillic" do
+      diff = TestDiff.diff('Привет, как дела?', 'Привет, хорошо дела!')
+      diff.should == "Привет, <del class=\"diffmod\">как</del><ins class=\"diffmod\">хорошо</ins> дела<del class=\"diffmod\">?</del><ins class=\"diffmod\">!</ins>"
+    end
+
+    it "should support Greek" do
+      diff = TestDiff.diff('Καλημέρα κόσμε', 'Καλησπέρα κόσμε')
+      diff.should == "<del class=\"diffmod\">Καλημέρα</del><ins class=\"diffmod\">Καλησπέρα</ins> κόσμε"
+    end
+
+    it "should support Arabic" do
+      diff = TestDiff.diff('مرحبا بالعالم', 'مرحبا جميل بالعالم')
+      diff.should == "مرحبا <ins class=\"diffins\">جميل </ins>بالعالم"
+    end
+
+    it "should support Hebrew" do
+      diff = TestDiff.diff('שלום עולם', 'שלום עולם קטן')
+      diff.should == "שלום עולם<ins class=\"diffins\"> קטן</ins>"
+    end
+
+    it "should support Vietnamese" do
+      diff = TestDiff.diff('Xin chào thế giới', 'Xin chào thế giới mới')
+      diff.should == "Xin chào thế giới<ins class=\"diffins\"> mới</ins>"
+    end
+
+    it "should handle mixed scripts" do
+      diff = TestDiff.diff('Hello مرحبا Привет', 'Hello مرحبا جدا Привет')
+      diff.should == "Hello مرحبا <ins class=\"diffins\">جدا </ins>Привет"
+    end
+
+    it "should support Cyrillic with HTML tags" do
+      diff = TestDiff.diff('<div>Текст в теге</div>', '<div>Новый текст в теге</div>')
+      diff.should == "<div><del class=\"diffmod\">Текст</del><ins class=\"diffmod\">Новый текст</ins> в теге</div>"
+    end
+
+    it "should support Arabic with HTML tags" do
+      diff = TestDiff.diff('<span>النص في العلامة</span>', '<span>النص الجديد في العلامة</span>')
+      diff.should == "<span>النص<ins class=\"diffins\"> الجديد</ins> في العلامة</span>"
+    end
+
+    it "should handle complex Hebrew changes" do
+      diff = TestDiff.diff('אני אוהב לתכנת בשפת רובי', 'אני אוהב מאוד לתכנת בשפת פייתון')
+      diff.should == "אני אוהב<ins class=\"diffins\"> מאוד</ins> לתכנת בשפת <del class=\"diffmod\">רובי</del><ins class=\"diffmod\">פייתון</ins>"
+    end
+
+    it "should support Vietnamese diacritics" do
+      diff = TestDiff.diff('Tôi yêu lập trình', 'Tôi thích lập trình')
+      diff.should == "Tôi <del class=\"diffmod\">yêu</del><ins class=\"diffmod\">thích</ins> lập trình"
+    end
+
+    it "should handle mixed languages with punctuation" do
+      diff = TestDiff.diff('Hello, Привет! مرحبا. שלום', 'Hello, Привет! مرحبا جدا. שלום עולם')
+      diff.should == "Hello, Привет! <del class=\"diffmod\">مرحبا.</del><ins class=\"diffmod\">مرحبا جدا.</ins> שלום<ins class=\"diffins\"> עולם</ins>"
+    end
+
+    it "should support Greek with formatting tags" do
+      diff = TestDiff.diff('<b>Γεια σας</b> κόσμε', '<b>Γεια σου</b> κόσμε')
+      diff.should == "<b>Γεια <del class=\"diffmod\">σας</del><ins class=\"diffmod\">σου</ins></b> κόσμε"
+    end
+
+    it "should detect changes within Arabic words" do
+      diff = TestDiff.diff('البرمجة ممتعة', 'البرمجة سهلة')
+      diff.should == "البرمجة <del class=\"diffmod\">ممتعة</del><ins class=\"diffmod\">سهلة</ins>"
+    end
+
+    it "should properly handle RTL text with HTML" do
+      diff = TestDiff.diff('<div dir="rtl">שלום עולם</div>', '<div dir="rtl">שלום חבר</div>')
+      diff.should == "<div dir=\"rtl\">שלום <del class=\"diffmod\">עולם</del><ins class=\"diffmod\">חבר</ins></div>"
+    end
+
+    it "should handle multi-word changes in Vietnamese" do
+      diff = TestDiff.diff('Tôi đang học Ruby', 'Tôi đang học Python rất vui')
+      diff.should == "Tôi đang học <del class=\"diffmod\">Ruby</del><ins class=\"diffmod\">Python rất vui</ins>"
+    end
+
+    it "should support Chinese" do
+      diff = TestDiff.diff('这个是中文内容, Ruby is the bast', '这是中国语内容，Ruby is the best language.')
+      diff.should == "这<del class=\"diffdel\">个</del>是中<del class=\"diffmod\">文</del><ins class=\"diffmod\">国语</ins>内容<del class=\"diffmod\">, </del><ins class=\"diffmod\">，</ins>Ruby is the <del class=\"diffmod\">bast</del><ins class=\"diffmod\">best language.</ins>"
+    end
+
+    it "should support Hindi (Devanagari)" do
+      diff = TestDiff.diff('नमस्ते दुनिया', 'नमस्ते प्यारी दुनिया')
+      diff.should == "नमस्ते <ins class=\"diffins\">प्यारी </ins>दुनिया"
+    end
+
+    it "should support Thai" do
+      diff = TestDiff.diff('สวัสดีชาวโลก', 'สวัสดีชาวโลกที่สวยงาม')
+      diff.should == "สวัสดีชาวโลก<ins class=\"diffins\">ที่สวยงาม</ins>"
+    end
+
+    it "should support Japanese" do
+      diff = TestDiff.diff('こんにちは世界', 'こんにちは美しい世界')
+      diff.should == "こんにちは<ins class=\"diffins\">美しい</ins>世界"
+    end
+
+    it "should support Korean" do
+      diff = TestDiff.diff('안녕하세요 세계', '안녕하세요 아름다운 세계')
+      diff.should == "안녕하세요 <ins class=\"diffins\">아름다운 </ins>세계"
+    end
+
+    it "should support Armenian" do
+      diff = TestDiff.diff('Բարեւ աշխարհ', 'Բարեւ գեղեցիկ աշխարհ')
+      diff.should == "Բարեւ <ins class=\"diffins\">գեղեցիկ </ins>աշխարհ"
+    end
+
+    it "should support Georgian" do
+      diff = TestDiff.diff('გამარჯობა მსოფლიო', 'გამარჯობა ლამაზი მსოფლიო')
+      diff.should == "გამარჯობა <ins class=\"diffins\">ლამაზი </ins>მსოფლიო"
+    end
+
+    it "should support Amharic (Ethiopic)" do
+      diff = TestDiff.diff('ሰላም ዓለም', 'ሰላም ውብ ዓለም')
+      diff.should == "ሰላም <ins class=\"diffins\">ውብ </ins>ዓለም"
+    end
+
+    it "should support Khmer" do
+      diff = TestDiff.diff('សួស្តី​ពិភពលោក', 'សួស្តី​ពិភពលោក ស្អាត')
+      diff.should == "សួស្តី​ពិភពលោក<ins class=\"diffins\"> ស្អាត</ins>"
+    end
+
+    it "should support Lao" do
+      diff = TestDiff.diff('ສະບາຍດີ ໂລກ', 'ສະບາຍດີ ໂລກ ສວຍງາມ')
+      diff.should == "ສະບາຍດີ ໂລກ<ins class=\"diffins\"> ສວຍງາມ</ins>"
+    end
+
+    it "should support Myanmar (Burmese)" do
+      diff = TestDiff.diff('မင်္ဂလာပါ ကမ္ဘာ', 'မင်္ဂလာပါ လှပသော ကမ္ဘာ')
+      diff.should == "မင်္ဂလာပါ <ins class=\"diffins\">လှပသော </ins>ကမ္ဘာ"
+    end
+
+    it "should support Sinhala" do
+      diff = TestDiff.diff('ආයුබෝවන් ලෝකය', 'ආයුබෝවන් ලස්සන ලෝකය')
+      diff.should == "ආයුබෝවන් <ins class=\"diffins\">ලස්සන </ins>ලෝකය"
+    end
+
+    it "should support Tamil" do
+      diff = TestDiff.diff('வணக்கம் உலகம்', 'வணக்கம் அழகிய உலகம்')
+      diff.should == "வணக்கம் <ins class=\"diffins\">அழகிய </ins>உலகம்"
+    end
+
+    it "should support Telugu" do
+      diff = TestDiff.diff('నమస్కారం ప్రపంచం', 'నమస్కారం అందమైన ప్రపంచం')
+      diff.should == "నమస్కారం <ins class=\"diffins\">అందమైన </ins>ప్రపంచం"
+    end
+
+    it "should support Kannada" do
+      diff = TestDiff.diff('ನಮಸ್ಕಾರ ಜಗತ್ತು', 'ನಮಸ್ಕಾರ ಸುಂದರ ಜಗತ್ತು')
+      diff.should == "ನಮಸ್ಕಾರ <ins class=\"diffins\">ಸುಂದರ </ins>ಜಗತ್ತು"
+    end
+
+    it "should support Malayalam" do
+      diff = TestDiff.diff('നമസ്കാരം ലോകം', 'നമസ്കാരം സുന്ദരമായ ലോകം')
+      diff.should == "നമസ്കാരം <ins class=\"diffins\">സുന്ദരമായ </ins>ലോകം"
+    end
+
+    it "should support Tibetan" do
+      diff = TestDiff.diff('བཀྲ་ཤིས་བདེ་ལེགས། འཛམ་གླིང་', 'བཀྲ་ཤིས་བདེ་ལེགས། མཛེས་སྡུག་ལྡན་པའི་ འཛམ་གླིང་')
+      diff.should == "བཀྲ་ཤིས་བདེ་ལེགས། <ins class=\"diffins\">མཛེས་སྡུག་ལྡན་པའི་ </ins>འཛམ་གླིང་"
+    end
+
+    it "should support Mongolian" do
+      diff = TestDiff.diff('Сайн байна уу дэлхий', 'Сайн байна уу гоё дэлхий')
+      diff.should == "Сайн байна уу <ins class=\"diffins\">гоё </ins>дэлхий"
+    end
+
+    pending "should support mixed scripts and languages" do
+      diff = TestDiff.diff('Hello नमस्ते こんにちは', 'Hello नमस्ते मित्र こんにちは 世界')
+      diff.should == "Hello नमस्ते <ins class=\"diffins\">मित्र </ins>こんにちは<ins class=\"diffins\"> 世界</ins>"
+    end
+
+    pending "should handle mixed languages with HTML tags" do
+      diff = TestDiff.diff('<div>안녕하세요 世界</div>', '<div>안녕하세요 아름다운 世界</div>')
+      diff.should == "<div>안녕하세요 <ins class=\"diffins\">아름다운 </ins>世界</div>"
+    end
+
+    it "should handle complex changes in Japanese" do
+      diff = TestDiff.diff('日本語は面白いです', '日本語は素晴らしいです')
+      diff.should == "日本語は<del class=\"diffmod\">面白</del><ins class=\"diffmod\">素晴らし</ins>いです"
+    end
+
+    it "should detect changes within Devanagari words" do
+      diff = TestDiff.diff('मैं प्रोग्रामिंग पसंद करता हूँ', 'मैं कोडिंग पसंद करता हूँ')
+      diff.should == "मैं <del class=\"diffmod\">प्रोग्रामिंग</del><ins class=\"diffmod\">कोडिंग</ins> पसंद करता हूँ"
+    end
   end
 
   describe "HTML entities" do
