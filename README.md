@@ -5,14 +5,22 @@
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-rubocop-brightgreen.svg)](https://github.com/rubocop/rubocop)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-HTMLDiff is a Ruby gem that generates HTML-formatted diffs between two text strings. It highlights additions, deletions, and modifications in HTML format using your choice of formatting styles.
+HTMLDiff is a Ruby gem that generates HTML-formatted diffs between two text strings.
+It can be used in your app to highlight additions, deletions, and modifications
+of text using HTML and CSS.
 
 ### Features
 
+- Simple and opinionated API—it just works™.
 - Generates diffs of text using the LCS (Longest Common Subsequence) algorithm
 - Customizable output formatting options.
 - Diff preserves whitespace and HTML tags, HTML entities, URLs, and email addresses.
 - Multi-language support (Cyrillic, Greek, Arabic, Hebrew, Chinese, Japanese, Korean, etc.)
+
+### Alternatives
+
+- [diffy](https://github.com/samg/diffy) - Far more complex and feature-rich, but less opinionated.
+- [diff-lcs](https://github.com/halostatue/diff-lcs) - The underlying gem used by HTMLDiff.
 
 ## Getting Started
 
