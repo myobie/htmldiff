@@ -1,22 +1,27 @@
+# frozen_string_literal: true
+
 module HTMLDiff
 
   Match = Struct.new(:start_in_old, :start_in_new, :size)
+
   class Match
     def end_in_old
       self.start_in_old + self.size
     end
-    
+
     def end_in_new
       self.start_in_new + self.size
     end
   end
-  
+
   Operation = Struct.new(:action, :start_in_old, :end_in_old, :start_in_new, :end_in_new)
 
   class DiffBuilder
+    WORDCHAR_REGEXP = /[\p{Latin}\p{Greek}\p{Cyrillic}\d@#.]/i
 
     def initialize(old_version, new_version)
-      @old_version, @new_version = old_version, new_version
+      @old_version = old_version
+      @new_version = new_version
       @content = []
     end
 
@@ -24,7 +29,7 @@ module HTMLDiff
       split_inputs_to_words
       index_new_words
       operations.each { |op| perform_operation(op) }
-      return @content.join
+      @content.join
     end
 
     def split_inputs_to_words
@@ -40,16 +45,17 @@ module HTMLDiff
     def operations
       position_in_old = position_in_new = 0
       operations = []
-      
+
       matches = matching_blocks
-      # an empty match at the end forces the loop below to handle the unmatched tails
-      # I'm sure it can be done more gracefully, but not at 23:52
+
+      # An empty match at the end forces the loop below to handle the unmatched tails
+      # TODO: Refactor to handle more gracefully
       matches << Match.new(@old_words.length, @new_words.length, 0)
-      
-      matches.each_with_index do |match, i|
+
+      matches.each do |match|
         match_starts_at_current_position_in_old = (position_in_old == match.start_in_old)
         match_starts_at_current_position_in_new = (position_in_new == match.start_in_new)
-        
+
         action_upto_match_positions = 
           case [match_starts_at_current_position_in_old, match_starts_at_current_position_in_new]
           when [false, false]
@@ -64,23 +70,23 @@ module HTMLDiff
           end
 
         if action_upto_match_positions != :none
-          operation_upto_match_positions = 
-              Operation.new(action_upto_match_positions, 
-                  position_in_old, match.start_in_old, 
-                  position_in_new, match.start_in_new)
+          operation_upto_match_positions = Operation.new(action_upto_match_positions,
+                                                         position_in_old, match.start_in_old,
+                                                         position_in_new, match.start_in_new)
           operations << operation_upto_match_positions
         end
-        if match.size != 0
-          match_operation = Operation.new(:equal, 
-              match.start_in_old, match.end_in_old, 
-              match.start_in_new, match.end_in_new)
+
+        unless match.size == 0
+          match_operation = Operation.new(:equal,
+                                          match.start_in_old, match.end_in_old,
+                                          match.start_in_new, match.end_in_new)
           operations << match_operation
         end
 
         position_in_old = match.end_in_old
         position_in_new = match.end_in_new
       end
-      
+
       operations
     end
 
@@ -92,29 +98,32 @@ module HTMLDiff
 
     def recursively_find_matching_blocks(start_in_old, end_in_old, start_in_new, end_in_new, matching_blocks)
       match = find_match(start_in_old, end_in_old, start_in_new, end_in_new)
-      if match
-        if start_in_old < match.start_in_old and start_in_new < match.start_in_new
-          recursively_find_matching_blocks(
-              start_in_old, match.start_in_old, start_in_new, match.start_in_new, matching_blocks) 
-        end
-        matching_blocks << match
-        if match.end_in_old < end_in_old and match.end_in_new < end_in_new
-          recursively_find_matching_blocks(
-              match.end_in_old, end_in_old, match.end_in_new, end_in_new, matching_blocks)
-        end
+      return unless match
+
+      if start_in_old < match.start_in_old and start_in_new < match.start_in_new
+        recursively_find_matching_blocks(start_in_old,
+                                         match.start_in_old,
+                                         start_in_new,
+                                         match.start_in_new,
+                                         matching_blocks)
+      end
+      matching_blocks << match
+      if match.end_in_old < end_in_old and match.end_in_new < end_in_new
+        recursively_find_matching_blocks(match.end_in_old,
+                                         end_in_old,
+                                         match.end_in_new,
+                                         end_in_new,
+                                         matching_blocks)
       end
     end
 
     def find_match(start_in_old, end_in_old, start_in_new, end_in_new)
-
       best_match_in_old = start_in_old
       best_match_in_new = start_in_new
       best_match_size = 0
-      
       match_length_at = Hash.new { |h, index| h[index] = 0 }
-      
-      start_in_old.upto(end_in_old - 1) do |index_in_old|
 
+      start_in_old.upto(end_in_old - 1) do |index_in_old|
         new_match_length_at = Hash.new { |h, index| h[index] = 0 }
 
         @word_indices[@old_words[index_in_old]].each do |index_in_new|
@@ -133,12 +142,9 @@ module HTMLDiff
         match_length_at = new_match_length_at
       end
 
-#      best_match_in_old, best_match_in_new, best_match_size = add_matching_words_left(
-#          best_match_in_old, best_match_in_new, best_match_size, start_in_old, start_in_new)
-#      best_match_in_old, best_match_in_new, match_size = add_matching_words_right(
-#          best_match_in_old, best_match_in_new, best_match_size, end_in_old, end_in_new)
+      return if best_match_size == 0
 
-      return (best_match_size != 0 ? Match.new(best_match_in_old, best_match_in_new, best_match_size) : nil)
+      Match.new(best_match_in_old, best_match_in_new, best_match_size)
     end
 
     def add_matching_words_left(match_in_old, match_in_new, match_size, start_in_old, start_in_new)
@@ -160,8 +166,8 @@ module HTMLDiff
       end
       [match_in_old, match_in_new, match_size]
     end
-    
-    VALID_METHODS = [:replace, :insert, :delete, :equal]
+
+    VALID_METHODS = %i[replace insert delete equal].freeze
 
     def perform_operation(operation)
       @operation = operation
@@ -172,20 +178,20 @@ module HTMLDiff
       delete(operation, 'diffmod')
       insert(operation, 'diffmod')
     end
-    
+
     def insert(operation, tagclass = 'diffins')
       insert_tag('ins', tagclass, @new_words[operation.start_in_new...operation.end_in_new])
     end
-    
+
     def delete(operation, tagclass = 'diffdel')
-       insert_tag('del', tagclass, @old_words[operation.start_in_old...operation.end_in_old])
+      insert_tag('del', tagclass, @old_words[operation.start_in_old...operation.end_in_old])
     end
-    
+
     def equal(operation)
       # no tags to insert, simply copy the matching words from one of the versions
       @content += @new_words[operation.start_in_new...operation.end_in_new]
     end
-  
+
     def opening_tag?(item)
       item =~ %r!^\s*<[^>]+>\s*$!
     end
@@ -197,7 +203,7 @@ module HTMLDiff
     def tag?(item)
       opening_tag?(item) or closing_tag?(item)
     end
-    
+
     def img_tag?(item)
       (item[0..4].downcase == '<img ') && (item[-2..-1].downcase == '/>')
     end
@@ -246,80 +252,68 @@ module HTMLDiff
     end
 
     def explode(sequence)
-      sequence.is_a?(String) ? sequence.split("") : sequence
+      sequence.is_a?(String) ? sequence.split('') : sequence
     end
-  
+
     def end_of_tag?(char)
       char == '>'
     end
-  
+
     def start_of_tag?(char)
       char == '<'
     end
-    
-    def whitespace?(char)
-      char =~ /\s/
+
+    def wordchar?(char)
+      char.match?(WORDCHAR_REGEXP)
     end
-  
+
     def convert_html_to_list_of_words(x, use_brackets = false)
-      mode = :char
-      current_word  = ''
+      mode = :wordchar
+      current_word  = +''
       words = []
-      
+
       explode(x).each do |char|
         case mode
         when :tag
-          if end_of_tag? char
+          if end_of_tag?(char)
             current_word << (use_brackets ? ']' : '>')
             words << current_word
-            current_word = ''
-            if whitespace?(char) 
-              mode = :whitespace 
-            else
-              mode = :char
-            end
+            current_word = +''
+            mode = :wordchar
           else
             current_word << char
           end
-        when :char
-          if start_of_tag? char
+        when :wordchar
+          if start_of_tag?(char)
             words << current_word unless current_word.empty?
-            current_word = (use_brackets ? '[' : '<')
+            current_word = use_brackets ? +'[' : +'<'
             mode = :tag
-          elsif /\s/.match char
-            words << current_word unless current_word.empty?
-            current_word = char
-            mode = :whitespace
-          elsif /[\w\#@]+/i.match char
-            current_word << char
-					else
-            words << current_word unless current_word.empty?
-            current_word = char
-          end
-        when :whitespace
-          if start_of_tag? char
-            words << current_word unless current_word.empty?
-            current_word = (use_brackets ? '[' : '<')
-            mode = :tag
-          elsif /\s/.match char
+          elsif wordchar?(char)
             current_word << char
           else
             words << current_word unless current_word.empty?
             current_word = char
-            mode = :char
+            mode = :other
           end
-        else 
+        when :other
+          words << current_word unless current_word.empty?
+          if start_of_tag?(char)
+            current_word = use_brackets ? +'[' : +'<'
+            mode = :tag
+          else
+            current_word = char
+            mode = :wordchar if wordchar?(char)
+          end
+        else
           raise "Unknown mode #{mode.inspect}"
         end
       end
       words << current_word unless current_word.empty?
       words
     end
+  end
 
-  end # of class Diff Builder
-  
   def diff(a, b)
     DiffBuilder.new(a, b).build
   end
-
 end
