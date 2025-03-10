@@ -2,213 +2,48 @@
 
 require_relative '../spec_helper'
 
+# rubocop:disable Style/ClassVars
 RSpec.describe HTMLDiff::DiffBuilder do
-  describe '.diff' do
-    let(:result) { described_class.diff(old_tokens, new_tokens) }
+  let(:old_string) { 'This is an old string' }
+  let(:new_string) { 'This is a new string' }
 
-    context 'with identical sequences' do
-      let(:old_tokens) { ['apple', ' ', 'banana', ' ', 'cherry'] }
-      let(:new_tokens) { ['apple', ' ', 'banana', ' ', 'cherry'] }
-
-      it 'returns an array with equality operations' do
-        expect(result).to eq([['=', 'apple banana cherry', 'apple banana cherry']])
-      end
+  describe '#initialize' do
+    it 'stores the old and new strings' do
+      builder = described_class.new(old_string, new_string)
+      expect(builder.instance_variable_get(:@old_string)).to eq(old_string)
+      expect(builder.instance_variable_get(:@new_string)).to eq(new_string)
     end
 
-    context 'with additions' do
-      let(:old_tokens) { ['apple', ' ', 'cherry'] }
-      let(:new_tokens) { ['apple', ' ', 'banana', ' ', 'cherry'] }
-
-      it 'returns operations with insertions' do
-        expect(result).to eq([
-                               ['=', 'apple ', 'apple '],
-                               ['+', nil, 'banana '],
-                               ['=', 'cherry', 'cherry']
-                             ])
-      end
-
-      context 'with consecutive additions' do
-        let(:old_tokens) { ['apple', ' ', 'elderberry'] }
-        let(:new_tokens) { ['apple', ' ', 'banana', ' ', 'cherry', ' ', 'elderberry'] }
-
-        it 'joins consecutive additions' do
-          expect(result).to eq([
-                                 ['=', 'apple ', 'apple '],
-                                 ['+', nil, 'banana cherry '],
-                                 ['=', 'elderberry', 'elderberry']
-                               ])
-        end
-      end
+    it 'outputs a deprecation warning' do
+      described_class.class_variable_set(:@@warned_init, false)
+      expect { described_class.new(old_string, new_string) }.to output(/HTMLDiff::DiffBuilder is deprecated/).to_stderr
     end
 
-    context 'with deletions' do
-      let(:old_tokens) { ['apple', ' ', 'banana', ' ', 'cherry'] }
-      let(:new_tokens) { ['apple', ' ', 'cherry'] }
+    it 'only outputs the warning once' do
+      described_class.class_variable_set(:@@warned_init, false)
+      described_class.new(old_string, new_string)
+      expect { described_class.new(old_string, new_string) }.not_to output.to_stderr
+    end
+  end
 
-      it 'returns operations with deletions' do
-        expect(result).to eq([
-                               ['=', 'apple ', 'apple '],
-                               ['-', 'banana ', nil],
-                               ['=', 'cherry', 'cherry']
-                             ])
-      end
+  describe '#build' do
+    let(:builder) { described_class.new(old_string, new_string) }
 
-      context 'with consecutive deletions' do
-        let(:old_tokens) { ['apple', ' ', 'banana', ' ', 'cherry', ' ', 'elderberry'] }
-        let(:new_tokens) { ['apple', ' ', 'elderberry'] }
-
-        it 'joins consecutive deletions' do
-          expect(result).to eq([
-                                 ['=', 'apple ', 'apple '],
-                                 ['-', 'banana cherry ', nil],
-                                 ['=', 'elderberry', 'elderberry']
-                               ])
-        end
-      end
+    it 'calls HTMLDiff.diff with the stored strings' do
+      result = builder.build
+      expect(result).to eq 'This is <del class="diffmod">an</del><ins class="diffmod">a</ins> <del class="diffmod">old</del><ins class="diffmod">new</ins> string'
     end
 
-    context 'with replacements' do
-      let(:old_tokens) { ['apple', ' ', 'banana', ' ', 'cherry'] }
-      let(:new_tokens) { ['apple', ' ', 'orange', ' ', 'cherry'] }
-
-      it 'handles replacements' do
-        expect(result).to eq([
-                               ['=', 'apple ', 'apple '],
-                               ['!', 'banana', 'orange'],
-                               ['=', ' cherry', ' cherry']
-                             ])
-      end
-
-      context 'with consecutive replacements' do
-        let(:old_tokens) { ['apple', ' ', 'banana', ' ', 'cherry', ' ', 'elderberry'] }
-        let(:new_tokens) { ['apple', ' ', 'orange', ' ', 'kiwi', ' ', 'elderberry'] }
-
-        it 'handles each replacement separately' do
-          expect(result).to eq([
-                                 ['=', 'apple ', 'apple '],
-                                 ['!', 'banana', 'orange'],
-                                 ['=', ' ', ' '],
-                                 ['!', 'cherry', 'kiwi'],
-                                 ['=', ' elderberry', ' elderberry']
-                               ])
-        end
-      end
+    it 'outputs a deprecation warning' do
+      described_class.class_variable_set(:@@warned_build, false)
+      expect { builder.build }.to output(/\AHTMLDiff::DiffBuilder#build is deprecated/).to_stderr
     end
 
-    context 'with mixed operations and joins' do
-      context 'with a delete followed by an insert' do
-        let(:old_tokens) { ['apple', ' ', 'banana', ' ', 'cherry'] }
-        let(:new_tokens) { ['apple', ' ', 'orange', ' ', 'cherry'] }
-
-        it 'combines deletion followed by insertion into replacement' do
-          expect(result).to eq([
-                                 ['=', 'apple ', 'apple '],
-                                 ['!', 'banana', 'orange'],
-                                 ['=', ' cherry', ' cherry']
-                               ])
-        end
-      end
-
-      context 'with an insert followed by a delete' do
-        let(:old_tokens) { ['apple', ' ', 'banana', ' ', 'elderberry'] }
-        let(:new_tokens) { ['apple', ' ', 'orange', ' ', 'elderberry'] }
-
-        it 'combines insertion followed by deletion into replacement' do
-          expect(result).to eq([
-                                 ['=', 'apple ', 'apple '],
-                                 ['!', 'banana', 'orange'],
-                                 ['=', ' elderberry', ' elderberry']
-                               ])
-        end
-      end
-
-      context 'with mixed operation patterns' do
-        let(:old_tokens) { ['apple', ' ', 'banana', ' ', 'cherry', ' ', 'date', ' ', 'elderberry'] }
-        let(:new_tokens) { ['apple', ' ', 'orange', ' ', 'kiwi', ' ', 'date', ' ', 'grape'] }
-
-        it 'properly joins consecutive operations of the same type' do
-          expect(result).to eq([
-                                 ['=', 'apple ', 'apple '],
-                                 ['!', 'banana', 'orange'],
-                                 ['=', ' ', ' '],
-                                 ['!', 'cherry', 'kiwi'],
-                                 ['=', ' date ', ' date '],
-                                 ['!', 'elderberry', 'grape']
-                               ])
-        end
-      end
-    end
-
-    context 'with joining behavior' do
-      context 'when a replacement is followed by a deletion' do
-        let(:old_tokens) { ['apple', ' ', 'banana', ' ', 'cherry', ' ', 'date'] }
-        let(:new_tokens) { ['apple', ' ', 'orange', ' ', 'date'] }
-
-        it 'correctly handles replacement followed by deletion' do
-          expect(result).to eq([
-                                 ['=', 'apple ', 'apple '],
-                                 ['!', 'banana cherry', 'orange'],
-                                 ['=', ' date', ' date']
-                               ])
-        end
-      end
-
-      context 'when a replacement is followed by an insertion' do
-        let(:old_tokens) { ['apple', ' ', 'banana', ' ', 'date'] }
-        let(:new_tokens) { ['apple', ' ', 'orange', ' ', 'cherry', ' ', 'date'] }
-
-        it 'correctly handles replacement followed by insertion' do
-          expect(result).to eq([
-                                 ['=', 'apple ', 'apple '],
-                                 ['!', 'banana', 'orange cherry'],
-                                 ['=', ' date', ' date']
-                               ])
-        end
-      end
-    end
-
-    context 'with edge cases' do
-      context 'with empty sequences' do
-        let(:old_tokens) { [] }
-        let(:new_tokens) { [] }
-
-        it 'handles empty sequences' do
-          expect(result).to eq([])
-        end
-      end
-
-      context 'with one empty sequence' do
-        context 'with empty old_tokens' do
-          let(:old_tokens) { [] }
-          let(:new_tokens) { ['apple', ' ', 'banana', ' ', 'cherry'] }
-
-          it 'handles empty old_tokens' do
-            expect(result).to eq([['+', nil, 'apple banana cherry']])
-          end
-        end
-
-        context 'with empty new_tokens' do
-          let(:old_tokens) { ['apple', ' ', 'banana', ' ', 'cherry'] }
-          let(:new_tokens) { [] }
-
-          it 'handles empty new_tokens' do
-            expect(result).to eq([['-', 'apple banana cherry', nil]])
-          end
-        end
-      end
-
-      context 'with whitespace-only changes' do
-        let(:old_tokens) { ['apple', ' ', 'banana'] }
-        let(:new_tokens) { ['apple', ' ', ' ', 'banana'] }
-
-        it 'correctly identifies whitespace changes' do
-          expect(result).to eq([
-                                 ['=', 'apple ', 'apple '],
-                                 ['+', nil, ' '],
-                                 ['=', 'banana', 'banana']
-                               ])
-        end
-      end
+    it 'only outputs the warning once' do
+      described_class.class_variable_set(:@@warned_build, false)
+      builder.build
+      expect { builder.build }.not_to output.to_stderr
     end
   end
 end
+# rubocop:enable Style/ClassVars

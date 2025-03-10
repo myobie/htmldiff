@@ -2,8 +2,8 @@
 
 module HTMLDiff
   module Formatters
-    # The LegacyFormatter renders the diff as HTML with <del> and <ins> tags.
-    module LegacyFormatter
+    # The DelInsFormatter renders the diff as HTML with <del> and <ins> tags.
+    module DelInsFormatter
       extend self
 
       # Format a sequence of changes from LcsDiff into HTML

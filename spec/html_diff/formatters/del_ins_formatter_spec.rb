@@ -2,7 +2,7 @@
 
 require_relative '../../spec_helper'
 
-RSpec.describe HTMLDiff::Formatters::LegacyFormatter do
+RSpec.describe HTMLDiff::Formatters::DelInsFormatter do
   describe '.format' do
     context 'with equal content' do
       let(:changes) { [['=', 'This is some text', 'This is some text']] }

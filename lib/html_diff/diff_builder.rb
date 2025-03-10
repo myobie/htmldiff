@@ -2,35 +2,27 @@
 
 require 'diff/lcs'
 
+# rubocop:disable Style/ClassVars
 module HTMLDiff
-  # Performs a LCS diff and joins consecutive operations of the same type.
-  module DiffBuilder
-    extend self
+  # Deprecated class included only for legacy compatibility.
+  #
+  # @deprecated Use HTMLDiff.diff instead. HTLMDiff::DiffBuilder will be removed in v2.0.0.
+  class DiffBuilder
+    @@warned_init = false
+    @@warned_build = false
 
-    # Generate a simplified diff from two sequences
-    #
-    # @param old_tokens [Array<String>] tokens from the original text
-    # @param new_tokens [Array<String>] tokens from the new text
-    # @return [Array<Array>] array of [action, old_string, new_string] tuples
-    def diff(old_tokens, new_tokens)
-      changes = Diff::LCS.sdiff(old_tokens, new_tokens)
-      last_action = nil
-      changes.each_with_object([]) do |change, result|
-        last = result.last
-        if last_action == change.action
-          last[1] << change.old_element if last[1]
-          last[2] << change.new_element if last[2]
-        elsif last_action && last_action != '=' && change.action != '='
-          last[0] = '!'
-          last[1] ||= +''
-          last[1] << change.old_element if change.old_element
-          last[2] ||= +''
-          last[2] << change.new_element if change.new_element
-        else
-          result << [change.action, change.old_element&.dup, change.new_element&.dup]
-          last_action = change.action
-        end
-      end
+    def initialize(old_string, new_string)
+      warn('HTMLDiff::DiffBuilder is deprecated and will be removed in htmldiff v2.0.0. Use HTMLDiff.diff instead.') unless @@warned_init
+      @@warned_init = true
+      @old_string = old_string
+      @new_string = new_string
+    end
+
+    def build
+      warn('HTMLDiff::DiffBuilder#build is deprecated and will be removed in htmldiff v2.0.0. Use HTMLDiff.diff instead.') unless @@warned_build
+      @@warned_build = true
+      HTMLDiff.diff(@old_string, @new_string)
     end
   end
 end
+# rubocop:enable Style/ClassVars

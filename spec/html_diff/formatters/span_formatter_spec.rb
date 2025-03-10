@@ -16,27 +16,27 @@ RSpec.describe HTMLDiff::Formatters::SpanFormatter do
     context 'with removed content' do
       let(:changes) { [['-', 'deleted text', nil]] }
 
-      it 'wraps deleted content in span tags with diff-remove class' do
+      it 'wraps deleted content in span tags with diff-del class' do
         result = described_class.format(changes)
-        expect(result).to eq('<span class="diff-remove">deleted text</span>')
+        expect(result).to eq('<span class="diff-del">deleted text</span>')
       end
     end
 
     context 'with added content' do
       let(:changes) { [['+', nil, 'added text']] }
 
-      it 'wraps added content in span tags with diff-add class' do
+      it 'wraps added content in span tags with diff-ins class' do
         result = described_class.format(changes)
-        expect(result).to eq('<span class="diff-add">added text</span>')
+        expect(result).to eq('<span class="diff-ins">added text</span>')
       end
     end
 
     context 'with replaced content' do
       let(:changes) { [['!', 'old text', 'new text']] }
 
-      it 'shows both deleted and inserted content with diff-replace classes' do
+      it 'shows both deleted and inserted content with diff-mod classes' do
         result = described_class.format(changes)
-        expect(result).to eq('<span class="diff-replace diff-remove">old text</span><span class="diff-replace diff-add">new text</span>')
+        expect(result).to eq('<span class="diff-mod diff-del">old text</span><span class="diff-mod diff-ins">new text</span>')
       end
     end
 
@@ -68,13 +68,13 @@ RSpec.describe HTMLDiff::Formatters::SpanFormatter do
       it 'handles nil old_string in replace action' do
         changes = [['!', nil, 'new text']]
         result = described_class.format(changes)
-        expect(result).to eq('<span class="diff-replace diff-add">new text</span>')
+        expect(result).to eq('<span class="diff-mod diff-ins">new text</span>')
       end
 
       it 'handles nil new_string in replace action' do
         changes = [['!', 'old text', nil]]
         result = described_class.format(changes)
-        expect(result).to eq('<span class="diff-replace diff-remove">old text</span>')
+        expect(result).to eq('<span class="diff-mod diff-del">old text</span>')
       end
     end
 
@@ -92,8 +92,8 @@ RSpec.describe HTMLDiff::Formatters::SpanFormatter do
 
       it 'formats mixed content correctly' do
         result = described_class.format(changes)
-        expected = 'This is <span class="diff-remove">removed </span>and <span class="diff-add">added </span>' \
-                   '<span class="diff-replace diff-remove">modified text</span><span class="diff-replace diff-add">changed text</span> at the end'
+        expected = 'This is <span class="diff-del">removed </span>and <span class="diff-ins">added </span>' \
+                   '<span class="diff-mod diff-del">modified text</span><span class="diff-mod diff-ins">changed text</span> at the end'
         expect(result).to eq(expected)
       end
     end
@@ -109,13 +109,13 @@ RSpec.describe HTMLDiff::Formatters::SpanFormatter do
       it 'safely wraps HTML with span tags when removed' do
         changes = [['-', '<strong>bold</strong>', nil]]
         result = described_class.format(changes)
-        expect(result).to eq('<span class="diff-remove"><strong>bold</strong></span>')
+        expect(result).to eq('<span class="diff-del"><strong>bold</strong></span>')
       end
 
       it 'safely wraps HTML with span tags when added' do
         changes = [['+', nil, '<em>emphasis</em>']]
         result = described_class.format(changes)
-        expect(result).to eq('<span class="diff-add"><em>emphasis</em></span>')
+        expect(result).to eq('<span class="diff-ins"><em>emphasis</em></span>')
       end
     end
 
@@ -138,13 +138,13 @@ RSpec.describe HTMLDiff::Formatters::SpanFormatter do
       it 'preserves whitespace in removed content' do
         changes = [['-', "Text with\ttabs", nil]]
         result = described_class.format(changes)
-        expect(result).to eq('<span class="diff-remove">Text with	tabs</span>')
+        expect(result).to eq('<span class="diff-del">Text with	tabs</span>')
       end
 
       it 'preserves whitespace in added content' do
         changes = [['+', nil, "Text with  \nmultiple spaces"]]
         result = described_class.format(changes)
-        expect(result).to eq("<span class=\"diff-add\">Text with  \nmultiple spaces</span>")
+        expect(result).to eq("<span class=\"diff-ins\">Text with  \nmultiple spaces</span>")
       end
     end
   end

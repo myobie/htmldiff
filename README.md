@@ -11,7 +11,6 @@ HTMLDiff is a Ruby gem that generates HTML-formatted diffs between two text stri
 
 - Generates diffs of text using the LCS (Longest Common Subsequence) algorithm
 - Customizable output formatting options.
-- Intelligent handling of HTML content (treats tags as single tokens)
 - Diff preserves whitespace and HTML tags, HTML entities, URLs, and email addresses.
 - Multi-language support (Cyrillic, Greek, Arabic, Hebrew, Chinese, Japanese, Korean, etc.)
 
@@ -30,8 +29,8 @@ gem 'htmldiff'
 ```ruby
 require 'htmldiff'
 
-old_text = "The quick brown fox jumped over the lazy dog."
-new_text = "The quick red fox hopped over the active dog."
+old_text = "The quick red fox jumped over the dog."
+new_text = "The red fox hopped over the lazy dog."
 
 diff = HTMLDiff.diff(old_text, new_text)
 ```
@@ -39,7 +38,22 @@ diff = HTMLDiff.diff(old_text, new_text)
 Output:
 
 ```html
-The quick <del class="diffmod">brown</del><ins class="diffmod">red</ins> fox <del class="diffmod">jumped</del><ins class="diffmod">hopped</ins> over the <del class="diffmod">lazy</del><ins class="diffmod">active</ins> dog.
+The <del class="diffdel">quick </del>fox <del class="diffmod">jumped</del><ins class="diffmod">hopped</ins> over the <ins class="diffins">lazy</ins> dog.
+```
+
+### Formatting Using HTML Spans
+
+As an alternative to the default `<del>` and `<ins>` tags,
+HTMLDiff provides an alternative formatter to use `<span>` tags:
+
+```ruby
+diff = HTMLDiff.diff(old_text, new_text, formatter: HTMLDiff::Formatters::SpanFormatter)
+```
+
+Output:
+
+```html
+The <span class="diff-del">quick </span>fox <span class="diff-mod diff-del">jumped</span><span class="diff-mod diff-ins">hopped</span> over the <span class="diff-ins">lazy</span> dog.
 ```
 
 ### Using a Custom Output Formatter
@@ -56,12 +70,12 @@ module MyCustomFormatter
       when '=' # equal
         content << new_string if new_string
       when '-' # remove
-        content << %(<removed>#{old_string}</removed>)
+        content << %(<removed>#{old_string}</removed>) if old_string
       when '+' # add
-        content << %(<added>#{new_string}</added>)
+        content << %(<added>#{new_string}</added>) if new_string
       when '!' # replace
-        content << %(<removed>#{old_string}</removed>)
-        content << %(<added>#{new_string}</added>)
+        content << %(<removed>#{old_string}</removed>) if old_string
+        content << %(<added>#{new_string}</added>) if new_string
       end
     end
   end

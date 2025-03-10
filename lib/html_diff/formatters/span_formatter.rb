@@ -17,12 +17,12 @@ module HTMLDiff
           when '=' # equal
             content << new_string if new_string
           when '-' # remove
-            content << span_tag('diff-remove', old_string)
+            content << span_tag('diff-del', old_string)
           when '+' # add
-            content << span_tag('diff-add', new_string)
+            content << span_tag('diff-ins', new_string)
           when '!' # replace
-            content << span_tag('diff-replace diff-remove', old_string)
-            content << span_tag('diff-replace diff-add', new_string)
+            content << span_tag('diff-mod diff-del', old_string)
+            content << span_tag('diff-mod diff-ins', new_string)
           end
         end
       end
