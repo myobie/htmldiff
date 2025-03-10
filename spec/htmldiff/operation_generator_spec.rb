@@ -6,14 +6,14 @@ RSpec.describe HTMLDiff::OperationGenerator do
   describe ".generate_operations" do
     context "with empty inputs" do
       it "returns empty operations for empty tokens" do
-        operations = HTMLDiff::OperationGenerator.generate_operations([], [])
+        operations = described_class.generate_operations([], [])
         expect(operations).to be_empty
       end
     end
 
     context "with insertion operations" do
       it "generates an insert operation when adding new content" do
-        operations = HTMLDiff::OperationGenerator.generate_operations([], ["a", "b", "c"])
+        operations = described_class.generate_operations([], ["a", "b", "c"])
         
         expect(operations.size).to eq(1)
         expect(operations[0].action).to eq(:insert)
@@ -24,7 +24,7 @@ RSpec.describe HTMLDiff::OperationGenerator do
       end
 
       it "generates an insert operation in the middle of content" do
-        operations = HTMLDiff::OperationGenerator.generate_operations(
+        operations = described_class.generate_operations(
           ["a", "d"],
           ["a", "b", "c", "d"]
         )
@@ -46,11 +46,26 @@ RSpec.describe HTMLDiff::OperationGenerator do
         # Second equal operation for "d"
         expect(operations[2].action).to eq(:equal)
       end
+
+      it 'preserves leading whitespace' do
+        old_words = ["Hello", " ", "world"]
+        new_words = ["Hello", " ", "beautiful", " ", "world"]
+
+        operations = described_class.generate_operations(old_words, new_words)
+
+        expected_operations = [
+          HTMLDiff::Operation.new(:equal, 0, 2, 0, 2),  # Equal: "Hello "
+          HTMLDiff::Operation.new(:insert, 2, 2, 2, 4), # Insert: "beautiful "
+          HTMLDiff::Operation.new(:equal, 2, 3, 4, 5)   # Equal: "world"
+        ]
+
+        expect(operations).to eq(expected_operations)
+      end
     end
 
     context "with deletion operations" do
       it "generates a delete operation when removing content" do
-        operations = HTMLDiff::OperationGenerator.generate_operations(
+        operations = described_class.generate_operations(
           ["a", "b", "c"],
           []
         )
@@ -64,7 +79,7 @@ RSpec.describe HTMLDiff::OperationGenerator do
       end
 
       it "generates a delete operation in the middle of content" do
-        operations = HTMLDiff::OperationGenerator.generate_operations(
+        operations = described_class.generate_operations(
           ["a", "b", "c", "d"],
           ["a", "d"]
         )
@@ -86,11 +101,26 @@ RSpec.describe HTMLDiff::OperationGenerator do
         # Second equal operation for "d"
         expect(operations[2].action).to eq(:equal)
       end
+
+      it 'preserves leading whitespace' do
+        old_words = ["Hello", " ", "beautiful", " ", "world"]
+        new_words = ["Hello", " ", "world"]
+
+        operations = described_class.generate_operations(old_words, new_words)
+
+        expected_operations = [
+          HTMLDiff::Operation.new(:equal, 0, 2, 0, 2),  # Equal: "Hello "
+          HTMLDiff::Operation.new(:delete, 2, 4, 2, 2), # Delete: "beautiful "
+          HTMLDiff::Operation.new(:equal, 4, 5, 2, 3)   # Equal: "world"
+        ]
+
+        expect(operations).to eq(expected_operations)
+      end
     end
 
     context "with equal operations" do
       it "generates an equal operation for identical content" do
-        operations = HTMLDiff::OperationGenerator.generate_operations(
+        operations = described_class.generate_operations(
           ["a", "b", "c"],
           ["a", "b", "c"]
         )
@@ -106,7 +136,7 @@ RSpec.describe HTMLDiff::OperationGenerator do
 
     context "with replace operations" do
       it "generates a replace operation for changed content" do
-        operations = HTMLDiff::OperationGenerator.generate_operations(
+        operations = described_class.generate_operations(
           ["a", "b", "c"],
           ["x", "y", "z"]
         )
@@ -120,7 +150,7 @@ RSpec.describe HTMLDiff::OperationGenerator do
       end
 
       it "generates a replace operation for partially changed content" do
-        operations = HTMLDiff::OperationGenerator.generate_operations(
+        operations = described_class.generate_operations(
           ["a", "b", "c"],
           ["a", "x", "c"]
         )
@@ -144,11 +174,26 @@ RSpec.describe HTMLDiff::OperationGenerator do
         expect(operations[2].start_in_old).to eq(2)
         expect(operations[2].end_in_old).to eq(3)
       end
+
+      it 'preserves leading whitespace' do
+        old_words = ["Hello", " ", "world", "!"]
+        new_words = ["Hello", " ", "everyone", "!"]
+
+        operations = described_class.generate_operations(old_words, new_words)
+
+        expected_operations = [
+          HTMLDiff::Operation.new(:equal, 0, 2, 0, 2),   # Equal: "Hello "
+          HTMLDiff::Operation.new(:replace, 2, 3, 2, 3), # Replace: "world" with "everyone"
+          HTMLDiff::Operation.new(:equal, 3, 4, 3, 4)    # Equal: "!"
+        ]
+
+        expect(operations).to eq(expected_operations)
+      end
     end
 
     context "with complex scenarios" do
       it "handles mixed operations" do
-        operations = HTMLDiff::OperationGenerator.generate_operations(
+        operations = described_class.generate_operations(
           ["a", "b", "c", "d", "e"],
           ["a", "x", "c", "y", "e"]
         )
@@ -172,7 +217,7 @@ RSpec.describe HTMLDiff::OperationGenerator do
       end
 
       it "finds matches that span multiple tokens" do
-        operations = HTMLDiff::OperationGenerator.generate_operations(
+        operations = described_class.generate_operations(
           ["a", "b", "c", "d", "e", "f"],
           ["x", "y", "c", "d", "z"]
         )
@@ -188,7 +233,7 @@ RSpec.describe HTMLDiff::OperationGenerator do
       end
 
       it "handles completely different content" do
-        operations = HTMLDiff::OperationGenerator.generate_operations(
+        operations = described_class.generate_operations(
           ["hello", "world"],
           ["goodbye", "everyone"]
         )
@@ -201,7 +246,7 @@ RSpec.describe HTMLDiff::OperationGenerator do
         old_tokens = ["a", "b", "c", "d", "e", "f", "g", "h"]
         new_tokens = ["a", "c", "e", "g", "i", "j", "k"]
         
-        operations = HTMLDiff::OperationGenerator.generate_operations(old_tokens, new_tokens)
+        operations = described_class.generate_operations(old_tokens, new_tokens)
         
         # Validate that operations cover all tokens
         old_covered = operations.sum { |op| op.end_in_old - op.start_in_old }
@@ -218,6 +263,22 @@ RSpec.describe HTMLDiff::OperationGenerator do
           expect(op.start_in_new).to be >= 0
           expect(op.end_in_new).to be <= new_tokens.size
         end
+      end
+
+      it "handles multiple languages" do
+        old_tokens = ["Hello", " ", "नमस्ते", " ", "こ", "ん", "に", "ち", "は"]
+        new_tokens = ["Hello", " ", "नमस्ते", " ", "मित्र", " ", "こ", "ん", "に", "ち", "は", " ", "世", "界"]
+
+        operations = described_class.generate_operations(old_tokens, new_tokens)
+
+        expected_operations = [
+          HTMLDiff::Operation.new(:equal, 0, 4, 0, 4),   # Equal: "Hello " + "नमस्ते "
+          HTMLDiff::Operation.new(:insert, 4, 4, 4, 6),  # Insert: "मित्र "
+          HTMLDiff::Operation.new(:equal, 4, 9, 6, 11),  # Equal: "こんにちは"
+          HTMLDiff::Operation.new(:insert, 9, 9, 11, 14) # Insert: " 世界"
+        ]
+
+        expect(operations).to eq(expected_operations)
       end
     end
   end

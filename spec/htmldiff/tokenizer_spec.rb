@@ -98,6 +98,16 @@ RSpec.describe HTMLDiff::Tokenizer do
         expect(tokens).to eq(["Hello", " ", "Привет", " ", "こ", "ん", "に", "ち", "は"])
       end
 
+      it "tokenizes multiple languages 2" do
+        tokens = HTMLDiff::Tokenizer.tokenize("Hello नमस्ते こんにちは")
+        expect(tokens).to eq(["Hello", " ", "नमस्ते", " ", "こ", "ん", "に", "ち", "は"])
+      end
+
+      it "tokenizes multiple languages 3" do
+        tokens = HTMLDiff::Tokenizer.tokenize("Hello नमस्ते मित्र こんにちは 世界")
+        expect(tokens).to eq(["Hello", " ", "नमस्ते", " ", "मित्र", " ", "こ", "ん", "に", "ち", "は", " ", "世", "界"])
+      end
+
       it "handles complex HTML with mixed content" do
         html = '<div id="content"><h1>Title</h1><p>Text with <em>emphasis</em> and <strong>importance</strong>.</p></div>'
         tokens = HTMLDiff::Tokenizer.tokenize(html)

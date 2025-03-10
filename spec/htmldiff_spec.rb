@@ -226,7 +226,7 @@ RSpec.describe HTMLDiff do
       expect(diff).to eq("Сайн байна уу <ins class=\"diffins\">гоё </ins>дэлхий")
     end
 
-    pending "should support mixed scripts and languages" do
+    it "should support mixed scripts and languages" do
       diff = described_class.diff('Hello नमस्ते こんにちは', 'Hello नमस्ते मित्र こんにちは 世界')
       expect(diff).to eq("Hello नमस्ते <ins class=\"diffins\">मित्र </ins>こんにちは<ins class=\"diffins\"> 世界</ins>")
     end
