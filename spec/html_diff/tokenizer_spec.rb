@@ -242,7 +242,7 @@ RSpec.describe HTMLDiff::Tokenizer do
       end
     end
 
-    context 'multi-language support' do
+    context 'when multi-language' do
       it 'tokenizes multiple languages' do
         tokens = described_class.tokenize('Hello Привет こんにちは')
         expect(tokens).to eq(['Hello', ' ', 'Привет', ' ', 'こ', 'ん', 'に', 'ち', 'は'])
@@ -270,37 +270,37 @@ RSpec.describe HTMLDiff::Tokenizer do
 
       it 'separates Latin and Cyrillic characters' do
         tokens = described_class.tokenize('LatinПривет')
-        expect(tokens).to eq(['Latin', 'Привет'])
+        expect(tokens).to eq(%w[Latin Привет])
       end
 
       it 'separates Latin and Greek characters' do
         tokens = described_class.tokenize('HelloΚαλημέρα')
-        expect(tokens).to eq(['Hello', 'Καλημέρα'])
+        expect(tokens).to eq(%w[Hello Καλημέρα])
       end
 
       it 'separates Latin and Arabic characters' do
         tokens = described_class.tokenize('Helloمرحبا')
-        expect(tokens).to eq(['Hello', 'مرحبا'])
+        expect(tokens).to eq(%w[Hello مرحبا])
       end
 
       it 'separates Latin and Hebrew characters' do
         tokens = described_class.tokenize('Helloשלום')
-        expect(tokens).to eq(['Hello', 'שלום'])
+        expect(tokens).to eq(%w[Hello שלום])
       end
 
       it 'separates Latin and Devanagari characters' do
         tokens = described_class.tokenize('Helloनमस्ते')
-        expect(tokens).to eq(['Hello', 'नमस्ते'])
+        expect(tokens).to eq(%w[Hello नमस्ते])
       end
 
       it 'separates Devanagari and CJK characters' do
         tokens = described_class.tokenize('नमस्ते世界')
-        expect(tokens).to eq(['नमस्ते', '世', '界'])
+        expect(tokens).to eq(%w[नमस्ते 世 界])
       end
 
       it 'separates multiple different scripts' do
         tokens = described_class.tokenize('LatinПриветΚαλημέραمرحباनमस्ते世界')
-        expect(tokens).to eq(['Latin', 'Привет', 'Καλημέρα', 'مرحبا', 'नमस्ते', '世', '界'])
+        expect(tokens).to eq(%w[Latin Привет Καλημέρα مرحبا नमस्ते 世 界])
       end
 
       it 'handles mixed scripts with spaces' do
@@ -320,12 +320,12 @@ RSpec.describe HTMLDiff::Tokenizer do
 
       it 'handles digits with Latin characters' do
         tokens = described_class.tokenize('Latin123')
-        expect(tokens).to eq(['Latin', '123'])
+        expect(tokens).to eq(%w[Latin 123])
       end
 
       it 'separates digits from non-Latin scripts' do
         tokens = described_class.tokenize('Привет123')
-        expect(tokens).to eq(['Привет', '123'])
+        expect(tokens).to eq(%w[Привет 123])
       end
 
       it 'maintains URL integrity' do
@@ -340,7 +340,7 @@ RSpec.describe HTMLDiff::Tokenizer do
 
       it 'correctly handles Japanese characters' do
         tokens = described_class.tokenize('こんにちは世界')
-        expect(tokens).to eq(['こ', 'ん', 'に', 'ち', 'は', '世', '界'])
+        expect(tokens).to eq(%w[こ ん に ち は 世 界])
       end
 
       it 'correctly handles Korean Hangul' do
@@ -350,9 +350,10 @@ RSpec.describe HTMLDiff::Tokenizer do
 
       # Thai is a special case where characters are not separated
       # We need to consider using unicode segmentation for Thai
-      pending 'correctly handles Thai characters' do
+      it 'correctly handles Thai characters' do
+        pending('unicode normalization not supported')
         tokens = described_class.tokenize('สวัสดี')
-        expect(tokens).to eq(['ส', 'วั', 'ส', 'ดี'])
+        expect(tokens).to eq(%w[ส วั ส ดี])
       end
     end
   end
