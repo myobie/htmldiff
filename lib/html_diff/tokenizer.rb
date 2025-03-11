@@ -8,10 +8,10 @@ module HTMLDiff
     extend self
 
     # Regular expressions for special token types (prioritized)
-    URL_REGEXP = %r{\A(https?://|www\.)[^\s<>()"']+}i.freeze
-    EMAIL_REGEXP = /\A[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.freeze
     HTML_ENTITY_REGEXP = /\A&([a-zA-Z0-9]+|#[0-9]{1,6}|#x[0-9a-fA-F]{1,6});/.freeze
     HTML_TAG_REGEXP = /\A<[^>]+>/.freeze
+    URL_REGEXP = %r{\A(https?://|www\.)[^\s<>()"']+}i.freeze
+    EMAIL_REGEXP = /\A[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.freeze
 
     # Regular expression for word tokens, using capture groups.
     # Chinese, Japanese, and Thai are intentionally omitted,
@@ -66,20 +66,16 @@ module HTMLDiff
           token = scanner.scan(URL_REGEXP)
         end
 
-        # Handle email addresses
-        token ||= scanner.scan(EMAIL_REGEXP)
+        token ||= scanner.scan(EMAIL_REGEXP) ||
+                  scanner.scan(WORD_REGEXP)
 
         if token
           tokens << token
           next
         end
 
-        # Try to match a script using our optimized single regexp
-        if matched = scanner.scan(WORD_REGEXP)
-          tokens << matched
-        else
-          tokens << scanner.getch
-        end
+        # Single character fallback
+        tokens << scanner.getch
       end
 
       tokens
