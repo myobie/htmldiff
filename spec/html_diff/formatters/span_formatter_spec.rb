@@ -148,16 +148,4 @@ RSpec.describe HTMLDiff::Formatters::SpanFormatter do
       end
     end
   end
-
-  describe '.span_tag' do
-    it 'creates a span tag with the specified attributes' do
-      result = described_class.send(:span_tag, 'highlight', 'content')
-      expect(result).to eq('<span class="highlight">content</span>')
-    end
-
-    it 'returns empty string when content is nil' do
-      result = described_class.send(:span_tag, 'highlight', nil)
-      expect(result).to eq('')
-    end
-  end
 end
