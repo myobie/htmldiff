@@ -65,13 +65,14 @@ diff = HTMLDiff.diff(old_text, new_text, html_format: {
 ```
 
 Output:
+
 ```html
 The <span class="highlight removed">quick </span>red fox <span class="highlight removed">jumped</span><span class="highlight added">hopped</span> over the <span class="highlight added">lazy</span> dog.
 ```
 
 #### Customization Options
 
-`HTMLDiff.diff(format:)` supports the following options:
+`HTMLDiff.diff(html_format:)` supports the following options:
 
 | Option                  | Description                                                                                                |
 |-------------------------|------------------------------------------------------------------------------------------------------------|
