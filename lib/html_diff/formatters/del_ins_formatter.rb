@@ -8,7 +8,7 @@ module HTMLDiff
     module DelInsFormatter
       extend self
 
-      # Format a sequence of changes from LcsDiff into HTML
+      # Format a sequence of diff changes into HTML.
       #
       # @param changes [Array<Array>] Array of [action, old_string, new_string] tuples,
       #   where action is one of '=' (equal), '-' (remove), '+' (add), or '!' (replace)
