@@ -29,6 +29,11 @@ RSpec.describe HTMLDiff::Tokenizer do
         tokens = described_class.tokenize('Contact: user@example.com')
         expect(tokens).to eq(['Contact', ':', ' ', 'user@example.com'])
       end
+
+      it 'does not allow non-latin chars in email' do
+        tokens = described_class.tokenize('Email user@пример.com')
+        expect(tokens).to eq(['Email', ' ', 'user', '@', 'пример', '.', 'com'])
+      end
     end
 
     context 'with HTML content' do
@@ -91,21 +96,6 @@ RSpec.describe HTMLDiff::Tokenizer do
           'a', ' ', 'test', '.', '</p>'
         ]
         expect(tokens).to eq(expected)
-      end
-
-      it 'tokenizes multiple languages' do
-        tokens = described_class.tokenize('Hello Привет こんにちは')
-        expect(tokens).to eq(['Hello', ' ', 'Привет', ' ', 'こ', 'ん', 'に', 'ち', 'は'])
-      end
-
-      it 'tokenizes multiple languages 2' do
-        tokens = described_class.tokenize('Hello नमस्ते こんにちは')
-        expect(tokens).to eq(['Hello', ' ', 'नमस्ते', ' ', 'こ', 'ん', 'に', 'ち', 'は'])
-      end
-
-      it 'tokenizes multiple languages 3' do
-        tokens = described_class.tokenize('Hello नमस्ते मित्र こんにちは 世界')
-        expect(tokens).to eq(['Hello', ' ', 'नमस्ते', ' ', 'मित्र', ' ', 'こ', 'ん', 'に', 'ち', 'は', ' ', '世', '界'])
       end
 
       it 'handles complex HTML with mixed content' do
@@ -249,6 +239,120 @@ RSpec.describe HTMLDiff::Tokenizer do
                                'User', ' ', '(', 'user.name+tag@example.com', ')', ' ',
                                'shared', ' ', 'https://example.com/path?param=value#fragment'
                              ])
+      end
+    end
+
+    context 'multi-language support' do
+      it 'tokenizes multiple languages' do
+        tokens = described_class.tokenize('Hello Привет こんにちは')
+        expect(tokens).to eq(['Hello', ' ', 'Привет', ' ', 'こ', 'ん', 'に', 'ち', 'は'])
+      end
+
+      it 'tokenizes multiple languages 2' do
+        tokens = described_class.tokenize('Hello नमस्ते こんにちは')
+        expect(tokens).to eq(['Hello', ' ', 'नमस्ते', ' ', 'こ', 'ん', 'に', 'ち', 'は'])
+      end
+
+      it 'tokenizes multiple languages 3' do
+        tokens = described_class.tokenize('Hello नमस्ते मित्र こんにちは 世界')
+        expect(tokens).to eq(['Hello', ' ', 'नमस्ते', ' ', 'मित्र', ' ', 'こ', 'ん', 'に', 'ち', 'は', ' ', '世', '界'])
+      end
+
+      it 'correctly handles complex multilingual text' do
+        text = 'English text with Русский текст and العربية नमस्ते 你好 안녕하세요'
+        tokens = described_class.tokenize(text)
+        expected = [
+          'English', ' ', 'text', ' ', 'with', ' ', 'Русский', ' ', 'текст', ' ',
+          'and', ' ', 'العربية', ' ', 'नमस्ते', ' ', '你', '好', ' ', '안녕하세요'
+        ]
+        expect(tokens).to eq(expected)
+      end
+
+      it 'separates Latin and Cyrillic characters' do
+        tokens = described_class.tokenize('LatinПривет')
+        expect(tokens).to eq(['Latin', 'Привет'])
+      end
+
+      it 'separates Latin and Greek characters' do
+        tokens = described_class.tokenize('HelloΚαλημέρα')
+        expect(tokens).to eq(['Hello', 'Καλημέρα'])
+      end
+
+      it 'separates Latin and Arabic characters' do
+        tokens = described_class.tokenize('Helloمرحبا')
+        expect(tokens).to eq(['Hello', 'مرحبا'])
+      end
+
+      it 'separates Latin and Hebrew characters' do
+        tokens = described_class.tokenize('Helloשלום')
+        expect(tokens).to eq(['Hello', 'שלום'])
+      end
+
+      it 'separates Latin and Devanagari characters' do
+        tokens = described_class.tokenize('Helloनमस्ते')
+        expect(tokens).to eq(['Hello', 'नमस्ते'])
+      end
+
+      it 'separates Devanagari and CJK characters' do
+        tokens = described_class.tokenize('नमस्ते世界')
+        expect(tokens).to eq(['नमस्ते', '世', '界'])
+      end
+
+      it 'separates multiple different scripts' do
+        tokens = described_class.tokenize('LatinПриветΚαλημέραمرحباनमस्ते世界')
+        expect(tokens).to eq(['Latin', 'Привет', 'Καλημέρα', 'مرحبا', 'नमस्ते', '世', '界'])
+      end
+
+      it 'handles mixed scripts with spaces' do
+        tokens = described_class.tokenize('Latin Привет Καλημέρα مرحبا नमस्ते 世界')
+        expect(tokens).to eq(['Latin', ' ', 'Привет', ' ', 'Καλημέρα', ' ', 'مرحبا', ' ', 'नमस्ते', ' ', '世', '界'])
+      end
+
+      it 'handles mixed scripts with HTML' do
+        tokens = described_class.tokenize('<p>Latinहिन्दी</p>')
+        expect(tokens).to eq(['<p>', 'Latin', 'हिन्दी', '</p>'])
+      end
+
+      it 'handles mixed scripts with HTML entities' do
+        tokens = described_class.tokenize('Latin&nbsp;Привет')
+        expect(tokens).to eq(['Latin', '&nbsp;', 'Привет'])
+      end
+
+      it 'handles digits with Latin characters' do
+        tokens = described_class.tokenize('Latin123')
+        expect(tokens).to eq(['Latin', '123'])
+      end
+
+      it 'separates digits from non-Latin scripts' do
+        tokens = described_class.tokenize('Привет123')
+        expect(tokens).to eq(['Привет', '123'])
+      end
+
+      it 'maintains URL integrity' do
+        tokens = described_class.tokenize('Visit https://example.com/привет for Cyrillic content')
+        expect(tokens).to eq(['Visit', ' ', 'https://example.com/привет', ' ', 'for', ' ', 'Cyrillic', ' ', 'content'])
+      end
+
+      it 'correctly handles mixed strings with punctuation' do
+        tokens = described_class.tokenize('English(английский),हिन्दी!العربية?')
+        expect(tokens).to eq(['English', '(', 'английский', ')', ',', 'हिन्दी', '!', 'العربية', '?'])
+      end
+
+      it 'correctly handles Japanese characters' do
+        tokens = described_class.tokenize('こんにちは世界')
+        expect(tokens).to eq(['こ', 'ん', 'に', 'ち', 'は', '世', '界'])
+      end
+
+      it 'correctly handles Korean Hangul' do
+        tokens = described_class.tokenize('안녕하세요')
+        expect(tokens).to eq(['안녕하세요'])
+      end
+
+      # Thai is a special case where characters are not separated
+      # We need to consider using unicode segmentation for Thai
+      pending 'correctly handles Thai characters' do
+        tokens = described_class.tokenize('สวัสดี')
+        expect(tokens).to eq(['ส', 'วั', 'ส', 'ดี'])
       end
     end
   end
