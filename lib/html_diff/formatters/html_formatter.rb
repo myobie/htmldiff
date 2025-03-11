@@ -6,7 +6,7 @@ module HTMLDiff
     module HtmlFormatter
       extend self
 
-      # Format a sequence of changes from LcsDiff into HTML
+      # Format a sequence of diff changes into HTML.
       #
       # @param changes [Array<Array>] Array of [action, old_string, new_string] tuples,
       #   where action is one of '=' (unchanged), '-' (delete), '+' (insert), or '!' (replace)
