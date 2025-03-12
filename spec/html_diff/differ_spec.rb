@@ -376,5 +376,112 @@ RSpec.describe HTMLDiff::Differ do
         end
       end
     end
+
+    context 'with different merge_threshold values' do
+      let(:old_tokens) { ['The', ' ', 'quick', ' ', 'fox', ' ', 'jumped'] }
+      let(:new_tokens) { ['The', ' ', 'slow', ' ', 'fox', ' ', 'hopped'] }
+
+      context 'with default merge_threshold' do
+        let(:result) { described_class.diff(old_tokens, new_tokens) }
+
+        it 'merges fox token into changes' do
+          expect(result).to eq([
+                                 ['=', 'The ', 'The '],
+                                 ['!', 'quick fox jumped', 'slow fox hopped']
+                               ])
+        end
+      end
+
+      context 'with merge_threshold 0' do
+        let(:result) { described_class.diff(old_tokens, new_tokens, merge_threshold: 0) }
+
+        it 'only merges whitespace' do
+          expect(result).to eq([
+                                 ['=', 'The ', 'The '],
+                                 ['!', 'quick', 'slow'],
+                                 ['=', ' fox ', ' fox '],
+                                 ['!', 'jumped', 'hopped']
+                               ])
+        end
+      end
+
+      context 'with merge_threshold -1' do
+        let(:result) { described_class.diff(old_tokens, new_tokens, merge_threshold: -1) }
+
+        it 'disables merging entirely' do
+          expect(result).to eq([
+                                 ['=', 'The ', 'The '],
+                                 ['!', 'quick', 'slow'],
+                                 ['=', ' fox ', ' fox '],
+                                 ['!', 'jumped', 'hopped']
+                               ])
+        end
+      end
+
+      context 'with merge_threshold false' do
+        let(:result) { described_class.diff(old_tokens, new_tokens, merge_threshold: false) }
+
+        it 'disables merging' do
+          expect(result).to eq([
+                                 ['=', 'The ', 'The '],
+                                 ['!', 'quick', 'slow'],
+                                 ['=', ' fox ', ' fox '],
+                                 ['!', 'jumped', 'hopped']
+                               ])
+        end
+      end
+    end
+  end
+
+  describe '.mergeable_op?' do
+    it 'returns false when merge_threshold is nil' do
+      expect(described_class.send(:mergeable_op?, 'test', nil)).to be false
+    end
+
+    it 'returns false when merge_threshold is negative' do
+      expect(described_class.send(:mergeable_op?, 'test', -1)).to be false
+    end
+
+    it 'returns true for whitespace when merge_threshold is 0' do
+      expect(described_class.send(:mergeable_op?, '   ', 0)).to be true
+      expect(described_class.send(:mergeable_op?, "\t \n", 0)).to be true
+    end
+
+    it 'returns false for non-whitespace when merge_threshold is 0' do
+      expect(described_class.send(:mergeable_op?, 'test', 0)).to be false
+    end
+
+    it 'returns true when string length <= merge_threshold' do
+      expect(described_class.send(:mergeable_op?, 'abc', 3)).to be true
+      expect(described_class.send(:mergeable_op?, 'abcd', 3)).to be false
+    end
+
+    it 'returns true for whitespace regardless of length' do
+      expect(described_class.send(:mergeable_op?, '       ', 3)).to be true
+    end
+  end
+
+  describe '.finalize_op' do
+    it 'returns add action when old_val is empty' do
+      expect(described_class.send(:finalize_op, '!', '', 'new')).to eq(['+', nil, 'new'])
+    end
+
+    it 'returns delete action when new_val is empty' do
+      expect(described_class.send(:finalize_op, '!', 'old', '')).to eq(['-', 'old', nil])
+    end
+
+    it 'preserves action and values when both present' do
+      expect(described_class.send(:finalize_op, '!', 'old', 'new')).to eq(['!', 'old', 'new'])
+    end
+  end
+
+  describe '.lcs_sdiff' do
+    it 'delegates to Diff::LCS.sdiff' do
+      old_tokens = %w[a b c]
+      new_tokens = %w[a d c]
+      result = described_class.send(:lcs_sdiff, old_tokens, new_tokens)
+      expect(result.all?(Diff::LCS::Change)).to be true
+      expect(result.map(&:to_a)).to eq([['=', [0, 'a'], [0, 'a']], ['!', [1, 'b'], [1, 'd']], ['=', [2, 'c'], [2, 'c']]])
+    end
   end
 end

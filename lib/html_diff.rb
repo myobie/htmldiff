@@ -2,10 +2,9 @@
 
 require 'html_diff/tokenizer'
 require 'html_diff/differ'
-require 'html_diff/formatters/html_formatter'
-require 'html_diff/formatters/del_ins_formatter'
-require 'html_diff/formatters/span_formatter'
-require 'html_diff/diff_builder' # deprecated
+require 'html_diff/html_formatter'
+require 'html_diff/version'
+require 'html_diff/diff_builder' # @deprecated
 
 # Provides functionality for generating HTML-formatted diffs
 # between two text strings.
@@ -32,11 +31,10 @@ module HTMLDiff
 
     changes = Differ.diff(old_tokens, new_tokens, merge_threshold: merge_threshold)
 
-    if html_format
-      Formatters::HtmlFormatter.format(changes, **html_format)
-    else
-      formatter ||= Formatters::DelInsFormatter
+    if formatter
       formatter.format(changes)
+    else
+      HtmlFormatter.format(changes, **(html_format || {})) # double-splat nil only supported in Ruby 3.3+
     end
   end
 end

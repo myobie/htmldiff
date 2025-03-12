@@ -356,5 +356,123 @@ RSpec.describe HTMLDiff::Tokenizer do
         expect(tokens).to eq(%w[ส วั ส ดี])
       end
     end
+
+    context 'when testing specific pattern recognition' do
+      it 'tokenizes HTML entities specifically' do
+        text = 'test &copy; &amp; &#123; &#x1F4A9;'
+        tokens = described_class.tokenize(text)
+        expect(tokens).to eq(['test', ' ', '&copy;', ' ', '&amp;', ' ', '&#123;', ' ', '&#x1F4A9;'])
+      end
+
+      it 'tokenizes HTML tags specifically' do
+        text = '<div><span>text</span><img /></div>'
+        tokens = described_class.tokenize(text)
+        expect(tokens).to eq(['<div>', '<span>', 'text', '</span>', '<img />', '</div>'])
+      end
+
+      it 'tokenizes URLs specifically at the beginning' do
+        text = 'http://example.com is a URL'
+        tokens = described_class.tokenize(text)
+        expect(tokens[0]).to eq('http://example.com')
+      end
+
+      it 'tokenizes URLs with www prefix' do
+        text = 'www.example.com is also a URL'
+        tokens = described_class.tokenize(text)
+        expect(tokens[0]).to eq('www.example.com')
+      end
+
+      it 'recognizes email addresses at the beginning of text' do
+        text = 'user@example.com is an email'
+        tokens = described_class.tokenize(text)
+        expect(tokens[0]).to eq('user@example.com')
+      end
+
+      it 'recognizes email addresses in the middle of text' do
+        text = 'Contact user@example.com today'
+        tokens = described_class.tokenize(text)
+        expect(tokens[2]).to eq('user@example.com')
+      end
+    end
+
+    context 'when testing character peeking optimization' do
+      it 'optimizes HTML tag detection with < character peek' do
+        text = '<div>Content</div>'
+        tokens = described_class.tokenize(text)
+        expect(tokens).to eq(['<div>', 'Content', '</div>'])
+      end
+
+      it 'optimizes HTML entity detection with & character peek' do
+        text = '&copy; Copyright'
+        tokens = described_class.tokenize(text)
+        expect(tokens).to eq(['&copy;', ' ', 'Copyright'])
+      end
+
+      it 'optimizes URL detection with h character peek' do
+        text = 'http://example.com'
+        tokens = described_class.tokenize(text)
+        expect(tokens).to eq(['http://example.com'])
+      end
+
+      it 'optimizes URL detection with w character peek' do
+        text = 'www.example.com'
+        tokens = described_class.tokenize(text)
+        expect(tokens).to eq(['www.example.com'])
+      end
+
+      it 'uses character peek for case-insensitive detection' do
+        text = 'Https://example.com and Www.example.org'
+        tokens = described_class.tokenize(text)
+        expect(tokens).to eq(['Https://example.com', ' ', 'and', ' ', 'Www.example.org'])
+      end
+    end
+
+    context 'when testing character by character tokenization' do
+      it 'falls back to character by character for special characters' do
+        text = '!@#$%^&*()'
+        tokens = described_class.tokenize(text)
+        expect(tokens).to eq(['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'])
+      end
+
+      it 'correctly tokenizes mixed recognizable and unrecognizable patterns' do
+        text = 'abc!@#123'
+        tokens = described_class.tokenize(text)
+        expect(tokens).to eq(['abc', '!', '@', '#', '123'])
+      end
+    end
+
+    context 'with complex combinations' do
+      it 'handles a mix of HTML, entities, scripts and URLs' do
+        text = '<div class="container">Check out https://example.com/こんにちは?q=&amp;test and email john.doe@example.com</div>'
+        tokens = described_class.tokenize(text)
+
+        expected = [
+          '<div class="container">', 'Check', ' ', 'out', ' ',
+          'https://example.com/こんにちは?q=&amp;test', ' ', 'and', ' ',
+          'email', ' ', 'john.doe@example.com', '</div>'
+        ]
+        expect(tokens).to eq(expected)
+      end
+
+      it 'correctly handles URLs with fragments and query parameters' do
+        text = 'Check https://example.com/path?param=value&another=123#section'
+        tokens = described_class.tokenize(text)
+        expect(tokens).to include('https://example.com/path?param=value&another=123#section')
+      end
+
+      it 'correctly handles URLs with special characters' do
+        text = 'URL: https://example.com/path_(test)_more?q=spaces are%20allowed'
+        tokens = described_class.tokenize(text)
+        pending 'URL special characters are not handled correctly'
+        expect(tokens).to include('https://example.com/path_(test)_more?q=spaces')
+      end
+
+      it 'correctly handles URL boundaries' do
+        text = 'https://example.com/path.html. Next sentence.'
+        tokens = described_class.tokenize(text)
+        pending 'URL boundaries are not handled correctly'
+        expect(tokens).to eq(['https://example.com/path.html', '.', ' ', 'Next', ' ', 'sentence', '.'])
+      end
+    end
   end
 end
