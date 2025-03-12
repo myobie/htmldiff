@@ -224,10 +224,10 @@ RSpec.describe HTMLDiff::Differ do
         let(:new_tokens) { ['high', ' ', 'speed', ' ', 'performance'] }
 
         it 'correctly inserts the word' do
-            expect(result).to eq([
-                                 ["=", "high ", "high "],
-                                 ["+", nil, "speed"],
-                                 ["=", " performance", " performance"]
+          expect(result).to eq([
+                                 ['=', 'high ', 'high '],
+                                 ['+', nil, 'speed'],
+                                 ['=', ' performance', ' performance']
                                ])
         end
       end

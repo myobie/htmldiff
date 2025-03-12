@@ -9,7 +9,7 @@ module HTMLDiff
     extend self
 
     # Constants for array indices
-    INDEX_OP = 0
+    INDEX_ACTION = 0
     INDEX_OLD = 1
     INDEX_NEW = 2
     INDEX_WS = 3
@@ -27,7 +27,7 @@ module HTMLDiff
       while i < ops.length
         # Start a new group
         curr = ops[i]
-        op = curr[INDEX_OP]
+        action = curr[INDEX_ACTION]
         old_val = String.new(curr[INDEX_OLD] || '')
         new_val = String.new(curr[INDEX_NEW] || '')
         j = i + 1
@@ -36,12 +36,12 @@ module HTMLDiff
         while j < ops.length
           next_op = ops[j]
 
-          if next_op[INDEX_OP] == op
+          if next_op[INDEX_ACTION] == action
             # Same operation type, append it
             old_val << next_op[INDEX_OLD] if next_op[INDEX_OLD]
             new_val << next_op[INDEX_NEW] if next_op[INDEX_NEW]
             j += 1
-          elsif next_op[INDEX_WS] && j + 1 < ops.length && ops[j + 1][INDEX_OP] == op
+          elsif next_op[INDEX_WS] && action == ops[j + 1]&.[](INDEX_ACTION)
             # Whitespace followed by the same operation type, append both
             old_val << next_op[INDEX_OLD] if next_op[INDEX_OLD]
             old_val << ops[j + 1][INDEX_OLD] if ops[j + 1][INDEX_OLD]
@@ -55,7 +55,7 @@ module HTMLDiff
         end
 
         # Add the grouped operation
-        result << finalize_op(op, old_val, new_val)
+        result << finalize_op(action, old_val, new_val)
 
         # Move to the next unprocessed token
         i = j
@@ -83,18 +83,18 @@ module HTMLDiff
     end
 
     # Determine the final operation type
-    def finalize_op(op, old_val, new_val)
-      if op == '!'
+    def finalize_op(action, old_val, new_val)
+      if action == '!'
         if old_val.empty?
-          op = '+'
+          action = '+'
           old_val = nil
         elsif new_val.empty?
-          op = '-'
+          action = '-'
           new_val = nil
         end
       end
 
-      [op, old_val, new_val]
+      [action, old_val, new_val]
     end
   end
 end
