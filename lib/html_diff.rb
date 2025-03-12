@@ -34,7 +34,7 @@ module HTMLDiff
     if formatter
       formatter.format(changes)
     else
-      HtmlFormatter.format(changes, **(html_format || {}))
+      HtmlFormatter.format(changes, **(html_format || {})) # double-splat nil only supported in Ruby 3.3+
     end
   end
 end
