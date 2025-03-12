@@ -23,6 +23,9 @@ Metrics/CyclomaticComplexity:
 Metrics/MethodLength:
   Enabled: false
 
+Metrics/ParameterLists:
+  Enabled: false
+
 Metrics/PerceivedComplexity:
   Enabled: false
 
@@ -41,3 +44,6 @@ Style/Documentation:
 
 Style/ModuleFunction:
   EnforcedStyle: extend_self
+
+Style/NumericPredicate:
+  Enabled: false

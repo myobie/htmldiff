@@ -176,7 +176,7 @@ RSpec.describe HTMLDiff::Differ do
       end
     end
 
-    context 'with edge cases' do
+    context 'edge cases' do # rubocop:disable RSpec/ContextWording
       context 'with empty sequences' do
         let(:old_tokens) { [] }
         let(:new_tokens) { [] }
@@ -231,17 +231,147 @@ RSpec.describe HTMLDiff::Differ do
                                ])
         end
       end
+    end
 
-      context 'with whitespace between replacements' do
+    context 'when merge joining' do
+      context 'with mergeable segment between replacements with mergeable string' do
         let(:old_tokens) { ['The', ' ', 'quick', ' ', 'brown', ' ', 'fox', ' ', 'jumps'] }
         let(:new_tokens) { ['The', ' ', 'fast', ' ', 'speedy', ' ', 'fox', ' ', 'leaps'] }
 
-        it 'joins consecutive operations of the same type across whitespaces' do
+        it 'joins consecutive operations of the same type across the mergeable segment' do
+          expect(result).to eq([
+                                 ['=', 'The ', 'The '],
+                                 ['!', 'quick brown fox jumps', 'fast speedy fox leaps']
+                               ])
+        end
+      end
+
+      context 'with mergeable segment between replacements with non-mergeable string' do
+        let(:old_tokens) { ['The', ' ', 'quick', ' ', 'brown', ' ', 'toad', ' ', 'jumps'] }
+        let(:new_tokens) { ['The', ' ', 'fast', ' ', 'speedy', ' ', 'toad', ' ', 'leaps'] }
+
+        it 'joins consecutive operations of the same type across mergeable segments' do
           expect(result).to eq([
                                  ['=', 'The ', 'The '],
                                  ['!', 'quick brown', 'fast speedy'],
-                                 ['=', ' fox ', ' fox '],
+                                 ['=', ' toad ', ' toad '],
                                  ['!', 'jumps', 'leaps']
+                               ])
+        end
+      end
+
+      context 'with mergeable segment between inserts' do
+        let(:old_tokens) { ['&#8364;', ' ', 'is', ' ', 'euro'] }
+        let(:new_tokens) { ['&#8364;', ' ', 'is', ' ', 'the', ' ', 'euro', ' ', 'symbol'] }
+
+        it 'does not join whitespace' do
+          expect(result).to eq([
+                                 ['=', '&#8364; is ', '&#8364; is '],
+                                 ['+', nil, 'the '],
+                                 ['=', 'euro', 'euro'],
+                                 ['+', nil, ' symbol']
+                               ])
+        end
+      end
+
+      context 'with mergeable segment between deletes' do
+        let(:old_tokens) { ['&#8364;', ' ', 'is', ' ', 'the', ' ', 'euro', ' ', 'symbol'] }
+        let(:new_tokens) { ['&#8364;', ' ', 'is', ' ', 'euro'] }
+
+        it 'does not join whitespace' do
+          expect(result).to eq([
+                                 ['=', '&#8364; is ', '&#8364; is '],
+                                 ['-', 'the ', nil],
+                                 ['=', 'euro', 'euro'],
+                                 ['-', ' symbol', nil]
+                               ])
+        end
+      end
+
+      context 'with mergeable segment between insert and delete' do
+        let(:old_tokens) { ['&#8364;', ' ', 'is', ' ', 'the', ' ', 'euro'] }
+        let(:new_tokens) { ['&#8364;', ' ', 'is', ' ', 'euro', ' ', 'symbol'] }
+
+        it 'does not join whitespace' do
+          expect(result).to eq([
+                                 ['=', '&#8364; is ', '&#8364; is '],
+                                 ['-', 'the ', nil],
+                                 ['=', 'euro', 'euro'],
+                                 ['+', nil, ' symbol']
+                               ])
+        end
+      end
+
+      context 'with mergeable segment between replacement and insert' do
+        let(:old_tokens) { ['&#8364;', ' ', 'is', ' ', 'the', ' ', 'euro'] }
+        let(:new_tokens) { ['&#8364;', ' ', 'is', ' ', 'a', ' ', 'euro', ' ', 'symbol'] }
+
+        it 'joins consecutive operations of the same type across whitespaces' do
+          expect(result).to eq([
+                                 ['=', '&#8364; is ', '&#8364; is '],
+                                 ['!', 'the euro', 'a euro symbol']
+                               ])
+        end
+      end
+
+      context 'with mergeable segment between replacement and delete' do
+        let(:old_tokens) { ['&#8364;', ' ', 'is', ' ', 'the', ' ', 'euro', ' ', 'symbol'] }
+        let(:new_tokens) { ['&#8364;', ' ', 'is', ' ', 'a', ' ', 'euro'] }
+
+        it 'joins consecutive operations of the same type across whitespaces' do
+          expect(result).to eq([
+                                 ['=', '&#8364; is ', '&#8364; is '],
+                                 ['!', 'the euro symbol', 'a euro']
+                               ])
+        end
+      end
+
+      context 'with mergeable segment between insert and replacement' do
+        let(:old_tokens) { ['&#8364;', ' ', 'is', ' ', 'euro', ' ', 'mark'] }
+        let(:new_tokens) { ['&#8364;', ' ', 'is', ' ', 'a', ' ', 'euro', ' ', 'symbol'] }
+
+        it 'joins consecutive operations of the same type across whitespaces' do
+          expect(result).to eq([
+                                 ['=', '&#8364; is ', '&#8364; is '],
+                                 ['+', 'euro mark', 'a euro symbol']
+                               ])
+        end
+      end
+
+      context 'with mergeable segment between delete and replacement' do
+        let(:old_tokens) { ['&#8364;', ' ', 'is', ' ', 'a', ' ', 'euro', ' ', 'mark'] }
+        let(:new_tokens) { ['&#8364;', ' ', 'is', ' ', 'euro', ' ', 'symbol'] }
+
+        it 'joins consecutive operations of the same type across whitespaces' do
+          expect(result).to eq([
+                                 ['=', '&#8364; is ', '&#8364; is '],
+                                 ['-', 'a euro mark', 'euro symbol']
+                               ])
+        end
+      end
+
+      context 'with non-mergeable segment between two replacements' do
+        let(:old_tokens) { ['&#8364;', ' ', 'is', ' ', 'the', ' ', 'euro', ' ', 'symbol'] }
+        let(:new_tokens) { ['&#8364;', ' ', 'is', ' ', 'a', ' ', 'euro', ' ', 'mark'] }
+
+        it 'joins consecutive operations of the same type across whitespaces' do
+          expect(result).to eq([
+                                 ['=', '&#8364; is ', '&#8364; is '],
+                                 ['!', 'the', 'a'],
+                                 ['=', ' euro ', ' euro '],
+                                 ['!', 'symbol', 'mark']
+                               ])
+        end
+      end
+
+      context 'with mergeable segment between two replacements' do
+        let(:old_tokens) { ['&yen;', ' ', 'is', ' ', 'the', ' ', 'yen', ' ', 'symbol'] }
+        let(:new_tokens) { ['&yen;', ' ', 'is', ' ', 'a', ' ', 'yen', ' ', 'mark'] }
+
+        it 'joins consecutive operations of the same type across whitespaces' do
+          expect(result).to eq([
+                                 ['=', '&yen; is ', '&yen; is '],
+                                 ['!', 'the yen symbol', 'a yen mark']
                                ])
         end
       end

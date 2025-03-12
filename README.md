@@ -70,7 +70,7 @@ Output:
 The <span class="highlight removed">quick </span>red fox <span class="highlight removed">jumped</span><span class="highlight added">hopped</span> over the <span class="highlight added">lazy</span> dog.
 ```
 
-#### Customization Options
+#### HTML Output Customization Options
 
 `HTMLDiff.diff(html_format:)` supports the following options:
 
@@ -204,6 +204,30 @@ test.join #=> "Hello, world!"
 # Use your custom tokenizer in the diff method
 diff = HTMLDiff.diff(old_text, new_text, tokenizer: MyCustomTokenizer)
 ```
+
+### Tweaking Diff Sensitivity
+
+The `:merge_threshold` option allows you to control the sensitivity of
+how non-changed tokens are merged into diff changes. This is best illustrated
+by an example:
+
+```ruby
+old_text = "The quick fox jumped over the dog."
+new_text = "The slow fox hopped over the dog."
+
+# Default merge_threshold is 5. In the example below, the diff will include the
+# word "fox" into the changes, because the substring " fox " is 5 characters long.
+diff = HTMLDiff.diff(old_text, new_text)
+diff == "The <del>quick fox jumped</del><ins>slow fox hopped</ins> over the dog."
+
+# If we set the merge_threshold to 0, the diff will not include "fox" in the changes;
+# the diff will now be more granular/choppy.
+diff = HTMLDiff.diff(old_text, new_text, merge_threshold: 0)
+diff == "The <del>quick</del><ins>slow</ins> fox <del>jumped</del><ins>hopped</ins> over the dog."
+```
+
+Note the value `merge_threshold: 0` will still merge whitespace, but no other characters.
+To disable merging entirely, set `merge_threshold: false` or `-1`.
 
 ## How HTMLDiff Works
 

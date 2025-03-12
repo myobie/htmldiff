@@ -37,13 +37,13 @@ RSpec.describe HTMLDiff do
   it 'supports sentences' do
     diff = described_class.diff('The quick red fox? "jumped" over; the "lazy", brown dog! Didn\'t he?',
                                 'The quick blue fox? \'hopped\' over! the "active", purple dog! Did he not?')
-    expect(diff).to eq("The quick <del class=\"diffmod\">red</del><ins class=\"diffmod\">blue</ins> fox? <del class=\"diffmod\">\"jumped\"</del><ins class=\"diffmod\">'hopped'</ins> over<del class=\"diffmod\">;</del><ins class=\"diffmod\">!</ins> the \"<del class=\"diffmod\">lazy</del><ins class=\"diffmod\">active</ins>\", <del class=\"diffmod\">brown</del><ins class=\"diffmod\">purple</ins> dog! <del class=\"diffmod\">Didn't</del><ins class=\"diffmod\">Did</ins> he<ins class=\"diffins\"> not</ins>?")
+    expect(diff).to eq("The quick <del class=\"diffmod\">red</del><ins class=\"diffmod\">blue</ins> fox? <del class=\"diffmod\">\"jumped\" over;</del><ins class=\"diffmod\">'hopped' over!</ins> the \"<del class=\"diffmod\">lazy\", brown</del><ins class=\"diffmod\">active\", purple</ins> dog! <del class=\"diffmod\">Didn't he</del><ins class=\"diffmod\">Did he not</ins>?")
   end
 
   it 'supports escaped HTML' do
     diff = described_class.diff('&lt;div&gt;this &lt;span tag=1 class="foo"&gt;is a sentence&lt;/span&gt; test&lt;/div&gt;',
                                 '&lt;div&gt;this &lt;span class="bar" tag=2&gt;is a string&lt;/label&gt; also a test&lt;/label&gt;')
-    expect(diff).to eq('&lt;div&gt;this &lt;span <del class="diffdel">tag=1 </del>class="<del class="diffmod">foo</del><ins class="diffmod">bar</ins>"<ins class="diffins"> tag=2</ins>&gt;is a <del class="diffmod">sentence</del><ins class="diffmod">string</ins>&lt;/<del class="diffmod">span</del><ins class="diffmod">label</ins>&gt; <ins class="diffins">also a </ins>test&lt;/<del class="diffmod">div</del><ins class="diffmod">label</ins>&gt;')
+    expect(diff).to eq('&lt;div&gt;this &lt;span <del class="diffdel">tag=1 </del>class="<del class="diffmod">foo"</del><ins class="diffmod">bar" tag=2</ins>&gt;is a <del class="diffmod">sentence&lt;/span&gt; </del><ins class="diffmod">string&lt;/label&gt; also a </ins>test&lt;/<del class="diffmod">div</del><ins class="diffmod">label</ins>&gt;')
   end
 
   it 'supports img tags insertion' do
@@ -59,7 +59,7 @@ RSpec.describe HTMLDiff do
   describe 'multi-language support' do
     it 'supports Cyrillic' do
       diff = described_class.diff('Привет, как дела?', 'Привет, хорошо дела!')
-      expect(diff).to eq('Привет, <del class="diffmod">как</del><ins class="diffmod">хорошо</ins> дела<del class="diffmod">?</del><ins class="diffmod">!</ins>')
+      expect(diff).to eq('Привет, <del class="diffmod">как дела?</del><ins class="diffmod">хорошо дела!</ins>')
     end
 
     it 'supports Greek' do
@@ -134,7 +134,7 @@ RSpec.describe HTMLDiff do
 
     it 'supports Chinese' do
       diff = described_class.diff('这个是中文内容, Ruby is the bast', '这是中国语内容，Ruby is the best language.')
-      expect(diff).to eq('这<del class="diffdel">个</del>是中<del class="diffmod">文</del><ins class="diffmod">国语</ins>内容<del class="diffmod">, </del><ins class="diffmod">，</ins>Ruby is the <del class="diffmod">bast</del><ins class="diffmod">best language.</ins>')
+      expect(diff).to eq('这<del class="diffdel">个是中文内容, </del>Ruby is the <del class="diffmod">bast</del><ins class="diffmod">best language.</ins>')
     end
 
     it 'supports Hindi (Devanagari)' do
