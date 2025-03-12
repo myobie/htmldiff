@@ -3,7 +3,8 @@
 require 'html_diff/tokenizer'
 require 'html_diff/differ'
 require 'html_diff/html_formatter'
-require 'html_diff/diff_builder' # deprecated
+require 'html_diff/version'
+require 'html_diff/diff_builder' # @deprecated
 
 # Provides functionality for generating HTML-formatted diffs
 # between two text strings.

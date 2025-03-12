@@ -79,7 +79,7 @@ module HTMLDiff
       tag = tag.delete_prefix('<')
       tag = tag.delete_suffix('>')
       css_class = css_class.join(' ') if css_class.is_a?(Array)
-      css_class = nil if css_class&.empty?
+      css_class = nil if !css_class || css_class&.empty?
       "<#{tag}#{%( class="#{css_class}") if css_class}>#{content}</#{tag}>"
     end
   end

@@ -172,7 +172,7 @@ RSpec.describe HTMLDiff::HtmlFormatter do
           let(:changes) { [['-', "Text with\ttabs", nil]] }
 
           it 'preserves whitespace in removed content' do
-            expect(result).to eq('<del>Text with	tabs</del>')
+            expect(result).to eq("<del>Text with\ttabs</del>")
           end
         end
 
@@ -531,6 +531,61 @@ RSpec.describe HTMLDiff::HtmlFormatter do
         end
       end
     end
+
+    context 'with complex combinations of options' do
+      let(:changes) { example_changes }
+
+      it 'handles complex tag and class hierarchies' do
+        result = described_class.format(changes,
+                                        tag: 'span',
+                                        class: 'base',
+                                        tag_delete: 'del',
+                                        class_delete: 'deleted',
+                                        tag_insert: 'ins',
+                                        class_insert: 'inserted',
+                                        tag_replace: 'mark',
+                                        class_replace: 'replaced',
+                                        tag_replace_delete: 'del',
+                                        class_replace_delete: 'replaced-del',
+                                        tag_replace_insert: 'ins',
+                                        class_replace_insert: 'replaced-ins')
+
+        expected = 'The <del class="deleted">quick </del>red fox ' \
+                   '<del class="replaced-del">jumped</del><ins class="replaced-ins">hopped</ins> ' \
+                   'over the <ins class="inserted">lazy </ins>dog.'
+        expect(result).to eq(expected)
+      end
+
+      it 'handles all tag options with null classes' do
+        result = described_class.format(changes,
+                                        tag_unchanged: 'span',
+                                        tag_delete: 'del',
+                                        tag_insert: 'ins',
+                                        tag_replace: 'mark',
+                                        tag_replace_delete: 'span',
+                                        tag_replace_insert: 'span',
+                                        class: nil)
+
+        expected = '<span>The </span><del>quick </del><span>red fox </span>' \
+                   '<span>jumped</span><span>hopped</span><span> over the </span>' \
+                   '<ins>lazy </ins><span>dog.</span>'
+        expect(result).to eq(expected)
+      end
+    end
+
+    context 'with replace action when one string is nil' do
+      it 'handles replace with nil old_string' do
+        changes = [['!', nil, 'new text']]
+        result = described_class.format(changes)
+        expect(result).to eq('<ins>new text</ins>')
+      end
+
+      it 'handles replace with nil new_string' do
+        changes = [['!', 'old text', nil]]
+        result = described_class.format(changes)
+        expect(result).to eq('<del>old text</del>')
+      end
+    end
   end
 
   describe '.html_tag' do
@@ -552,6 +607,23 @@ RSpec.describe HTMLDiff::HtmlFormatter do
     it 'handles tags with angle brackets' do
       result = described_class.send(:html_tag, '<div>', 'container', 'content')
       expect(result).to eq('<div class="container">content</div>')
+    end
+
+    it 'handles unusual class values' do
+      result = described_class.send(:html_tag, 'div', '', 'content')
+      expect(result).to eq('<div>content</div>')
+      result = described_class.send(:html_tag, 'div', false, 'content')
+      expect(result).to eq('<div>content</div>')
+    end
+
+    it 'joins array class values with spaces' do
+      result = described_class.send(:html_tag, 'div', %w[one two three], 'content')
+      expect(result).to eq('<div class="one two three">content</div>')
+    end
+
+    it 'handles empty array for class' do
+      result = described_class.send(:html_tag, 'div', [], 'content')
+      expect(result).to eq('<div>content</div>')
     end
   end
 end

@@ -27,14 +27,17 @@ module HTMLDiff
       merge_threshold ||= DEFAULT_MERGE_THRESHOLD unless merge_threshold.is_a?(FalseClass)
       ops = lcs_sdiff(old_tokens, new_tokens)
 
-      # First pass: compact consecutive operations of the same type
+      # First pass: Compact consecutive operations of the same type
       ops = compact_ops(ops)
 
-      # Second pass: merge consecutive unchanged operations
+      # Second pass: Flag mergeable "=" operations
       ops.each do |op|
-        op << mergeable_op?(op[INDEX_OLD], merge_threshold) if op[INDEX_ACTION] == '='
+        next unless op[INDEX_ACTION] == '='
+
+        op << mergeable_op?(op[INDEX_OLD], merge_threshold)
       end
 
+      # Third pass: Merge consecutive unchanged operations
       # Don't touch this code, it's optimized for performance.
       result = []
       i = 0
