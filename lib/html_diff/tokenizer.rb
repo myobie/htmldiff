@@ -10,14 +10,14 @@ module HTMLDiff
     # Regular expressions for special token types (prioritized)
     HTML_ENTITY_REGEXP = /\A&([a-zA-Z0-9]+|#[0-9]{1,6}|#x[0-9a-fA-F]{1,6});/.freeze
     HTML_TAG_REGEXP = /\A<[^>]+>/.freeze
-    URL_REGEXP = %r{\A(https?://|www\.)[^\s<>()"']+}i.freeze
+    URL_REGEXP = %r{\A(https?://|www\.)[^\s<>"']+}i.freeze
     EMAIL_REGEXP = /\A[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.freeze
 
     # Regular expression for word tokens, using capture groups.
     # Chinese, Japanese, and Thai are intentionally omitted,
     # Since they typically do not include whitespace in text.
     WORD_REGEXP = /\A(?:
-      ([\d]+) |
+      (\d+(?:[\d,.]*\d+)?) |
       ([\p{Latin}]+) |
       ([\p{Cyrillic}]+) |
       ([\p{Greek}]+) |
@@ -42,6 +42,7 @@ module HTMLDiff
       ([\p{Tibetan}]+) |
       ([\p{Mongolian}]+)
     )/x.freeze
+    GRAPHEME_CLUSTER_REGEXP = /\A\X/.freeze
 
     # Tokenizes a string into an array of words and entities.
     #
@@ -51,6 +52,8 @@ module HTMLDiff
       return [] if string.empty?
 
       tokens = []
+      string = string.encode(Encoding::UTF_8, invalid: :replace, undef: :replace, replace: ' ')
+      string.unicode_normalize!
       scanner = StringScanner.new(string)
 
       until scanner.eos?
@@ -74,8 +77,8 @@ module HTMLDiff
           next
         end
 
-        # Single character fallback
-        tokens << scanner.getch
+        # Get next grapheme cluster
+        tokens << scanner.scan(GRAPHEME_CLUSTER_REGEXP)
       end
 
       tokens

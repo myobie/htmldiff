@@ -348,10 +348,7 @@ RSpec.describe HTMLDiff::Tokenizer do
         expect(tokens).to eq(['안녕하세요'])
       end
 
-      # Thai is a special case where characters are not separated
-      # We need to consider using unicode segmentation for Thai
       it 'correctly handles Thai characters' do
-        pending('unicode normalization not supported')
         tokens = described_class.tokenize('สวัสดี')
         expect(tokens).to eq(%w[ส วั ส ดี])
       end
@@ -461,10 +458,9 @@ RSpec.describe HTMLDiff::Tokenizer do
       end
 
       it 'correctly handles URLs with special characters' do
-        text = 'URL: https://example.com/path_(test)_more?q=spaces are%20allowed'
+        text = 'URL: https://example.com/path_(test)_more?q=spaces%20are not%20allowed'
         tokens = described_class.tokenize(text)
-        pending 'URL special characters are not handled correctly'
-        expect(tokens).to include('https://example.com/path_(test)_more?q=spaces')
+        expect(tokens).to include('https://example.com/path_(test)_more?q=spaces%20are')
       end
 
       it 'correctly handles URL boundaries' do
@@ -472,6 +468,12 @@ RSpec.describe HTMLDiff::Tokenizer do
         tokens = described_class.tokenize(text)
         pending 'URL boundaries are not handled correctly'
         expect(tokens).to eq(['https://example.com/path.html', '.', ' ', 'Next', ' ', 'sentence', '.'])
+      end
+
+      it 'correctly handles numbers' do
+        text = '1 1,234,567 1.234 1.234.567 1,234.567 foo 1,234,567.89 134.567,89'
+        tokens = described_class.tokenize(text)
+        expect(tokens).to eq(text.split(/(\s)/))
       end
     end
   end
