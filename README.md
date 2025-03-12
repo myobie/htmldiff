@@ -11,7 +11,7 @@ of text using HTML and CSS.
 
 ### Features
 
-- Simple and opinionated API—it just works™.
+- Simple and opinionated API—it just works™
 - Generates diffs of text using the LCS (Longest Common Subsequence) algorithm.
 - Diff preserves whitespace and HTML tags, HTML entities, URLs, and email addresses.
 - Multi-language support (Cyrillic, Greek, Arabic, Hebrew, Chinese, Japanese, Korean, etc.)
