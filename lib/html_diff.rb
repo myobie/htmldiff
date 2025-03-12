@@ -34,7 +34,7 @@ module HTMLDiff
     if formatter
       formatter.format(changes)
     else
-      HtmlFormatter.format(changes, **html_format)
+      HtmlFormatter.format(changes, **(html_format || {}))
     end
   end
 end
