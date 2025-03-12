@@ -6,6 +6,20 @@ RSpec.describe HTMLDiff::Differ do
   describe '.diff' do
     let(:result) { described_class.diff(old_tokens, new_tokens) }
 
+    context 'basic case' do # rubocop:disable RSpec/ContextWording
+      let(:old_tokens) { ['a', ' ', 'word', ' ', 'now', ' ', 'is', ' ', 'here'] }
+      let(:new_tokens) { ['a', ' ', 'second', ' ', 'word', ' ', 'is', ' ', 'there'] }
+
+      it 'returns an array with equality operations' do
+        expect(result).to eq([
+                               ['=', 'a ', 'a '],
+                               ['+', nil, 'second '],
+                               ['=', 'word ', 'word '],
+                               ['!', 'now is here', 'is there']
+                             ])
+      end
+    end
+
     context 'with identical sequences' do
       let(:old_tokens) { ['apple', ' ', 'banana', ' ', 'cherry'] }
       let(:new_tokens) { ['apple', ' ', 'banana', ' ', 'cherry'] }
@@ -333,7 +347,7 @@ RSpec.describe HTMLDiff::Differ do
         it 'joins consecutive operations of the same type across whitespaces' do
           expect(result).to eq([
                                  ['=', '&#8364; is ', '&#8364; is '],
-                                 ['+', 'euro mark', 'a euro symbol']
+                                 ['!', 'euro mark', 'a euro symbol']
                                ])
         end
       end
@@ -345,7 +359,7 @@ RSpec.describe HTMLDiff::Differ do
         it 'joins consecutive operations of the same type across whitespaces' do
           expect(result).to eq([
                                  ['=', '&#8364; is ', '&#8364; is '],
-                                 ['-', 'a euro mark', 'euro symbol']
+                                 ['!', 'a euro mark', 'euro symbol']
                                ])
         end
       end

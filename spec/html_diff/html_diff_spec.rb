@@ -3,7 +3,7 @@
 require_relative '../spec_helper'
 
 RSpec.describe HTMLDiff do
-  let(:html_format) { { class_insert: 'diffins', class_delete: 'diffdel', class_replace: 'diffmod' } }
+  let(:html_format) { { class_replace: 'mod' } }
   let(:options) { { html_format: html_format }.compact }
   let(:result) { described_class.diff(old_text, new_text, **options) }
 
@@ -13,7 +13,16 @@ RSpec.describe HTMLDiff do
       let(:new_text) { 'a nother word is there' }
 
       it 'diffs text correctly' do
-        expect(result).to eq('a <ins class="diffins">nother </ins>word is <del class="diffmod">here</del><ins class="diffmod">there</ins>')
+        expect(result).to eq('a <ins>nother </ins>word is <del class="mod">here</del><ins class="mod">there</ins>')
+      end
+    end
+
+    context 'when diffing basic text 2' do
+      let(:old_text) { 'a word now is here' }
+      let(:new_text) { 'a second word is there' }
+
+      it 'diffs text correctly' do
+        expect(result).to eq('a <ins>second </ins>word <del class="mod">now is here</del><ins class="mod">is there</ins>')
       end
     end
 
@@ -22,7 +31,7 @@ RSpec.describe HTMLDiff do
       let(:new_text) { 'a b c' }
 
       it 'inserts a letter and a space' do
-        expect(result).to eq('a <ins class="diffins">b </ins>c')
+        expect(result).to eq('a <ins>b </ins>c')
       end
     end
 
@@ -31,7 +40,7 @@ RSpec.describe HTMLDiff do
       let(:new_text) { 'a c' }
 
       it 'removes a letter and a space' do
-        expect(result).to eq('a <del class="diffdel">b </del>c')
+        expect(result).to eq('a <del>b </del>c')
       end
     end
 
@@ -40,7 +49,7 @@ RSpec.describe HTMLDiff do
       let(:new_text) { 'a d c' }
 
       it 'changes a letter' do
-        expect(result).to eq('a <del class="diffmod">b</del><ins class="diffmod">d</ins> c')
+        expect(result).to eq('a <del class="mod">b</del><ins class="mod">d</ins> c')
       end
     end
 
@@ -49,7 +58,7 @@ RSpec.describe HTMLDiff do
       let(:new_text) { 'blåbær deja vu' }
 
       it 'supports accents' do
-        expect(result).to eq('blåbær <del class="diffmod">dèjá</del><ins class="diffmod">deja</ins> vu')
+        expect(result).to eq('blåbær <del class="mod">dèjá</del><ins class="mod">deja</ins> vu')
       end
     end
 
@@ -58,7 +67,7 @@ RSpec.describe HTMLDiff do
       let(:new_text) { 'I sent an email to baz@bar.com!' }
 
       it 'supports email addresses' do
-        expect(result).to eq('I sent an email to <del class="diffmod">foo@bar.com</del><ins class="diffmod">baz@bar.com</ins>!')
+        expect(result).to eq('I sent an email to <del class="mod">foo@bar.com</del><ins class="mod">baz@bar.com</ins>!')
       end
     end
 
@@ -67,7 +76,7 @@ RSpec.describe HTMLDiff do
       let(:new_text) { 'The quick blue fox? \'hopped\' over! the "active", purple dog! Did he not?' }
 
       it 'supports sentences' do
-        expect(result).to eq("The quick <del class=\"diffmod\">red</del><ins class=\"diffmod\">blue</ins> fox? <del class=\"diffmod\">\"jumped\" over;</del><ins class=\"diffmod\">'hopped' over!</ins> the \"<del class=\"diffmod\">lazy\", brown</del><ins class=\"diffmod\">active\", purple</ins> dog! <del class=\"diffmod\">Didn't he</del><ins class=\"diffmod\">Did he not</ins>?")
+        expect(result).to eq("The quick <del class=\"mod\">red</del><ins class=\"mod\">blue</ins> fox? <del class=\"mod\">\"jumped\" over;</del><ins class=\"mod\">'hopped' over!</ins> the \"<del class=\"mod\">lazy\", brown</del><ins class=\"mod\">active\", purple</ins> dog! <del class=\"mod\">Didn't he</del><ins class=\"mod\">Did he not</ins>?")
       end
     end
 
@@ -76,7 +85,7 @@ RSpec.describe HTMLDiff do
       let(:new_text) { '&lt;div&gt;this &lt;span class="bar" tag=2&gt;is a string&lt;/label&gt; also a test&lt;/label&gt;' }
 
       it 'supports escaped HTML' do
-        expect(result).to eq('&lt;div&gt;this &lt;span <del class="diffdel">tag=1 </del>class="<del class="diffmod">foo"</del><ins class="diffmod">bar" tag=2</ins>&gt;is a <del class="diffmod">sentence&lt;/span&gt; </del><ins class="diffmod">string&lt;/label&gt; also a </ins>test&lt;/<del class="diffmod">div</del><ins class="diffmod">label</ins>&gt;')
+        expect(result).to eq('&lt;div&gt;this &lt;span <del>tag=1 </del>class="<del class="mod">foo"</del><ins class="mod">bar" tag=2</ins>&gt;is a <del class="mod">sentence&lt;/span&gt; </del><ins class="mod">string&lt;/label&gt; also a </ins>test&lt;/<del class="mod">div</del><ins class="mod">label</ins>&gt;')
       end
     end
 
@@ -86,7 +95,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'a b <img src="some_url" /> c' }
 
         it 'supports img tags insertion' do
-          expect(result).to eq('a b <ins class="diffins"><img src="some_url" /> </ins>c')
+          expect(result).to eq('a b <ins><img src="some_url" /> </ins>c')
         end
       end
 
@@ -95,7 +104,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'a b c' }
 
         it 'supports img tags deletion' do
-          expect(result).to eq('a b <del class="diffdel"><img src="some_url" /> </del>c')
+          expect(result).to eq('a b <del><img src="some_url" /> </del>c')
         end
       end
     end
@@ -239,7 +248,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'Привет, хорошо дела!' }
 
         it 'supports Cyrillic' do
-          expect(result).to eq('Привет, <del class="diffmod">как дела?</del><ins class="diffmod">хорошо дела!</ins>')
+          expect(result).to eq('Привет, <del class="mod">как дела?</del><ins class="mod">хорошо дела!</ins>')
         end
       end
 
@@ -248,7 +257,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'Καλησπέρα κόσμε' }
 
         it 'supports Greek' do
-          expect(result).to eq('<del class="diffmod">Καλημέρα</del><ins class="diffmod">Καλησπέρα</ins> κόσμε')
+          expect(result).to eq('<del class="mod">Καλημέρα</del><ins class="mod">Καλησπέρα</ins> κόσμε')
         end
       end
 
@@ -257,7 +266,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'مرحبا جميل بالعالم' }
 
         it 'supports Arabic' do
-          expect(result).to eq('مرحبا <ins class="diffins">جميل </ins>بالعالم')
+          expect(result).to eq('مرحبا <ins>جميل </ins>بالعالم')
         end
       end
 
@@ -266,7 +275,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'שלום עולם קטן' }
 
         it 'supports Hebrew' do
-          expect(result).to eq('שלום עולם<ins class="diffins"> קטן</ins>')
+          expect(result).to eq('שלום עולם<ins> קטן</ins>')
         end
       end
 
@@ -275,7 +284,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'Xin chào thế giới mới' }
 
         it 'supports Vietnamese' do
-          expect(result).to eq('Xin chào thế giới<ins class="diffins"> mới</ins>')
+          expect(result).to eq('Xin chào thế giới<ins> mới</ins>')
         end
       end
 
@@ -284,7 +293,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'Hello مرحبا جدا Привет' }
 
         it 'handles mixed scripts' do
-          expect(result).to eq('Hello مرحبا <ins class="diffins">جدا </ins>Привет')
+          expect(result).to eq('Hello مرحبا <ins>جدا </ins>Привет')
         end
       end
 
@@ -293,7 +302,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { '<div>Новый текст в теге</div>' }
 
         it 'supports Cyrillic with HTML tags' do
-          expect(result).to eq('<div><del class="diffmod">Текст</del><ins class="diffmod">Новый текст</ins> в теге</div>')
+          expect(result).to eq('<div><del class="mod">Текст</del><ins class="mod">Новый текст</ins> в теге</div>')
         end
       end
 
@@ -302,7 +311,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { '<span>النص الجديد في العلامة</span>' }
 
         it 'supports Arabic with HTML tags' do
-          expect(result).to eq('<span>النص <ins class="diffins">الجديد </ins>في العلامة</span>')
+          expect(result).to eq('<span>النص <ins>الجديد </ins>في العلامة</span>')
         end
       end
 
@@ -311,7 +320,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'אני אוהב מאוד לתכנת בשפת פייתון' }
 
         it 'handles complex Hebrew changes' do
-          expect(result).to eq('אני אוהב <ins class="diffins">מאוד </ins>לתכנת בשפת <del class="diffmod">רובי</del><ins class="diffmod">פייתון</ins>')
+          expect(result).to eq('אני אוהב <ins>מאוד </ins>לתכנת בשפת <del class="mod">רובי</del><ins class="mod">פייתון</ins>')
         end
       end
 
@@ -320,7 +329,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'Tôi thích lập trình' }
 
         it 'supports Vietnamese diacritics' do
-          expect(result).to eq('Tôi <del class="diffmod">yêu</del><ins class="diffmod">thích</ins> lập trình')
+          expect(result).to eq('Tôi <del class="mod">yêu</del><ins class="mod">thích</ins> lập trình')
         end
       end
 
@@ -329,7 +338,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'Hello, Привет! مرحبا جدا. שלום עולם' }
 
         it 'handles mixed languages with punctuation' do
-          expect(result).to eq('Hello, Привет! مرحبا<ins class="diffins"> جدا</ins>. שלום<ins class="diffins"> עולם</ins>')
+          expect(result).to eq('Hello, Привет! مرحبا<ins> جدا</ins>. שלום<ins> עולם</ins>')
         end
       end
 
@@ -338,7 +347,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { '<b>Γεια σου</b> κόσμε' }
 
         it 'supports Greek with formatting tags' do
-          expect(result).to eq('<b>Γεια <del class="diffmod">σας</del><ins class="diffmod">σου</ins></b> κόσμε')
+          expect(result).to eq('<b>Γεια <del class="mod">σας</del><ins class="mod">σου</ins></b> κόσμε')
         end
       end
 
@@ -347,7 +356,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'البرمجة سهلة' }
 
         it 'detects changes within Arabic words' do
-          expect(result).to eq('البرمجة <del class="diffmod">ممتعة</del><ins class="diffmod">سهلة</ins>')
+          expect(result).to eq('البرمجة <del class="mod">ممتعة</del><ins class="mod">سهلة</ins>')
         end
       end
 
@@ -356,7 +365,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { '<div dir="rtl">שלום חבר</div>' }
 
         it 'properly handles RTL text with HTML' do
-          expect(result).to eq('<div dir="rtl">שלום <del class="diffmod">עולם</del><ins class="diffmod">חבר</ins></div>')
+          expect(result).to eq('<div dir="rtl">שלום <del class="mod">עולם</del><ins class="mod">חבר</ins></div>')
         end
       end
 
@@ -365,17 +374,16 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'Tôi đang học Python rất vui' }
 
         it 'handles multi-word changes in Vietnamese' do
-          expect(result).to eq('Tôi đang học <del class="diffmod">Ruby</del><ins class="diffmod">Python rất vui</ins>')
+          expect(result).to eq('Tôi đang học <del class="mod">Ruby</del><ins class="mod">Python rất vui</ins>')
         end
       end
 
-      # Additional language tests...
       context 'when diffing Chinese' do
         let(:old_text) { '这个是中文内容, Ruby is the bast' }
         let(:new_text) { '这是中国语内容，Ruby is the best language.' }
 
         it 'supports Chinese' do
-          expect(result).to eq('这<del class="diffdel">个是中文内容, </del>Ruby is the <del class="diffmod">bast</del><ins class="diffmod">best language.</ins>')
+          expect(result).to eq('这<del class="mod">个是中文内容, </del><ins class="mod">是中国语内容，</ins>Ruby is the <del class="mod">bast</del><ins class="mod">best language.</ins>')
         end
       end
 
@@ -384,7 +392,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'नमस्ते प्यारी दुनिया' }
 
         it 'supports Hindi (Devanagari)' do
-          expect(result).to eq('नमस्ते <ins class="diffins">प्यारी </ins>दुनिया')
+          expect(result).to eq('नमस्ते <ins>प्यारी </ins>दुनिया')
         end
       end
 
@@ -393,7 +401,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'สวัสดีชาวโลกที่สวยงาม' }
 
         it 'supports Thai' do
-          expect(result).to eq('สวัสดีชาวโลก<ins class="diffins">ที่สวยงาม</ins>')
+          expect(result).to eq('สวัสดีชาวโลก<ins>ที่สวยงาม</ins>')
         end
       end
 
@@ -402,7 +410,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'こんにちは美しい世界' }
 
         it 'supports Japanese' do
-          expect(result).to eq('こんにちは<ins class="diffins">美しい</ins>世界')
+          expect(result).to eq('こんにちは<ins>美しい</ins>世界')
         end
       end
 
@@ -411,7 +419,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { '안녕하세요 아름다운 세계' }
 
         it 'supports Korean' do
-          expect(result).to eq('안녕하세요 <ins class="diffins">아름다운 </ins>세계')
+          expect(result).to eq('안녕하세요 <ins>아름다운 </ins>세계')
         end
       end
 
@@ -420,7 +428,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'Բարեւ գեղեցիկ աշխարհ' }
 
         it 'supports Armenian' do
-          expect(result).to eq('Բարեւ <ins class="diffins">գեղեցիկ </ins>աշխարհ')
+          expect(result).to eq('Բարեւ <ins>գեղեցիկ </ins>աշխարհ')
         end
       end
 
@@ -429,17 +437,16 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'გამარჯობა ლამაზი მსოფლიო' }
 
         it 'supports Georgian' do
-          expect(result).to eq('გამარჯობა <ins class="diffins">ლამაზი </ins>მსოფლიო')
+          expect(result).to eq('გამარჯობა <ins>ლამაზი </ins>მსოფლიო')
         end
       end
 
-      # Other languages continue in the same pattern...
       context 'when diffing Amharic' do
         let(:old_text) { 'ሰላም ዓለም' }
         let(:new_text) { 'ሰላም ውብ ዓለም' }
 
         it 'supports Amharic (Ethiopic)' do
-          expect(result).to eq('ሰላም <ins class="diffins">ውብ </ins>ዓለም')
+          expect(result).to eq('ሰላም <ins>ውብ </ins>ዓለም')
         end
       end
 
@@ -448,7 +455,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { '日本語は素晴らしいです' }
 
         it 'handles complex changes in Japanese' do
-          expect(result).to eq('日本語は<del class="diffmod">面白</del><ins class="diffmod">素晴らし</ins>いです')
+          expect(result).to eq('日本語は<del class="mod">面白</del><ins class="mod">素晴らし</ins>いです')
         end
       end
 
@@ -457,7 +464,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'मैं कोडिंग पसंद करता हूँ' }
 
         it 'detects changes within Devanagari words' do
-          expect(result).to eq('मैं <del class="diffmod">प्रोग्रामिंग</del><ins class="diffmod">कोडिंग</ins> पसंद करता हूँ')
+          expect(result).to eq('मैं <del class="mod">प्रोग्रामिंग</del><ins class="mod">कोडिंग</ins> पसंद करता हूँ')
         end
       end
     end
@@ -468,7 +475,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'a &lt; b &amp; c' }
 
         it 'supports basic HTML entities' do
-          expect(result).to eq('a &lt; b <del class="diffmod">&gt;</del><ins class="diffmod">&amp;</ins> c')
+          expect(result).to eq('a &lt; b <del class="mod">&gt;</del><ins class="mod">&amp;</ins> c')
         end
       end
 
@@ -477,7 +484,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { '&amp; &lt; &gt; &apos; &quot;' }
 
         it 'handles entity changes' do
-          expect(result).to eq('&amp; &lt; &gt; <del class="diffdel">&quot; </del>&apos;<ins class="diffins"> &quot;</ins>')
+          expect(result).to eq('&amp; &lt; &gt; <del>&quot; </del>&apos;<ins> &quot;</ins>')
         end
       end
 
@@ -486,7 +493,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { '&#8364; is the euro symbol' }
 
         it 'preserves numeric HTML entities' do
-          expect(result).to eq('&#8364; is <ins class="diffins">the </ins>euro<ins class="diffins"> symbol</ins>')
+          expect(result).to eq('&#8364; is <ins>the </ins>euro<ins> symbol</ins>')
         end
       end
 
@@ -495,7 +502,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { '&lt;p&gt;new text&lt;/p&gt;' }
 
         it 'diffs content with multiple entities correctly' do
-          expect(result).to eq('&lt;p&gt;<ins class="diffins">new </ins>text&lt;/p&gt;')
+          expect(result).to eq('&lt;p&gt;<ins>new </ins>text&lt;/p&gt;')
         end
       end
 
@@ -504,7 +511,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'a b' }
 
         it 'treats entities as single units' do
-          expect(result).to eq('a<del class="diffmod">&nbsp;</del><ins class="diffmod"> </ins>b')
+          expect(result).to eq('a<del class="mod">&nbsp;</del><ins class="mod"> </ins>b')
         end
       end
 
@@ -513,7 +520,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { '&copy; 2024 New Company' }
 
         it 'handles mixed entities and normal text' do
-          expect(result).to eq('&copy; <del class="diffmod">2023</del><ins class="diffmod">2024 New</ins> Company')
+          expect(result).to eq('&copy; <del class="mod">2023</del><ins class="mod">2024 New</ins> Company')
         end
       end
 
@@ -522,7 +529,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { '&lt;div class="new"&gt;content&lt;/div&gt;' }
 
         it 'diffs escaped HTML tags correctly' do
-          expect(result).to eq('&lt;div class="<del class="diffmod">old</del><ins class="diffmod">new</ins>"&gt;content&lt;/div&gt;')
+          expect(result).to eq('&lt;div class="<del class="mod">old</del><ins class="mod">new</ins>"&gt;content&lt;/div&gt;')
         end
       end
 
@@ -531,7 +538,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { '&lt;span&gt;здравствуйте&lt;/span&gt;' }
 
         it 'handles HTML entities in different scripts' do
-          expect(result).to eq('&lt;span&gt;<del class="diffmod">привет</del><ins class="diffmod">здравствуйте</ins>&lt;/span&gt;')
+          expect(result).to eq('&lt;span&gt;<del class="mod">привет</del><ins class="mod">здравствуйте</ins>&lt;/span&gt;')
         end
       end
 
@@ -540,7 +547,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { '&lt;a title="&amp; less"&gt;link&lt;/a&gt;' }
 
         it 'correctly processes HTML entities in attributes' do
-          expect(result).to eq('&lt;a title="&amp; <del class="diffmod">more</del><ins class="diffmod">less</ins>"&gt;link&lt;/a&gt;')
+          expect(result).to eq('&lt;a title="&amp; <del class="mod">more</del><ins class="mod">less</ins>"&gt;link&lt;/a&gt;')
         end
       end
 
@@ -549,7 +556,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { '&alpha;&delta;&gamma;' }
 
         it 'handles complex entity sequences' do
-          expect(result).to eq('&alpha;<del class="diffmod">&beta;</del><ins class="diffmod">&delta;</ins>&gamma;')
+          expect(result).to eq('&alpha;<del class="mod">&beta;</del><ins class="mod">&delta;</ins>&gamma;')
         end
       end
     end

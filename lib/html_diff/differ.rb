@@ -127,6 +127,8 @@ module HTMLDiff
       elsif new_val.empty?
         action = '-'
         new_val = nil
+      elsif action != '='
+        action = '!'
       end
 
       [action, old_val, new_val]
