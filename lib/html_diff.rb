@@ -30,6 +30,10 @@ module HTMLDiff
 
     changes = Differ.diff(old_tokens, new_tokens, merge_threshold: merge_threshold)
 
-    Formatters::HtmlFormatter.format(changes, **html_format)
+    if formatter
+      formatter.format(changes)
+    else
+      HtmlFormatter.format(changes, **html_format)
+    end
   end
 end

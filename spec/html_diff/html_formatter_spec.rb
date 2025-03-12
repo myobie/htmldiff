@@ -2,7 +2,7 @@
 
 require_relative '../spec_helper'
 
-RSpec.describe HTMLDiff::Formatters::HtmlFormatter do
+RSpec.describe HTMLDiff::HtmlFormatter do
   let(:old_text) { 'The quick red fox jumped over the dog.' }
   let(:new_text) { 'The red fox hopped over the lazy dog.' }
   let(:example_changes) do
@@ -17,7 +17,6 @@ RSpec.describe HTMLDiff::Formatters::HtmlFormatter do
     ]
   end
 
-  # Consolidated shared examples for common test patterns
   shared_examples 'common formatter behavior' do
     context 'with equal content' do
       let(:changes) { [['=', 'This is some text', 'This is some text']] }
