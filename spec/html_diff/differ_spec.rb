@@ -86,9 +86,7 @@ RSpec.describe HTMLDiff::Differ do
         it 'handles each replacement separately' do
           expect(result).to eq([
                                  ['=', 'apple ', 'apple '],
-                                 ['!', 'banana', 'orange'],
-                                 ['=', ' ', ' '],
-                                 ['!', 'cherry', 'kiwi'],
+                                 ['!', 'banana cherry', 'orange kiwi'],
                                  ['=', ' elderberry', ' elderberry']
                                ])
         end
@@ -129,9 +127,7 @@ RSpec.describe HTMLDiff::Differ do
         it 'properly joins consecutive operations of the same type' do
           expect(result).to eq([
                                  ['=', 'apple ', 'apple '],
-                                 ['!', 'banana', 'orange'],
-                                 ['=', ' ', ' '],
-                                 ['!', 'cherry', 'kiwi'],
+                                 ['!', 'banana cherry', 'orange kiwi'],
                                  ['=', ' date ', ' date '],
                                  ['!', 'elderberry', 'grape']
                                ])
@@ -208,6 +204,46 @@ RSpec.describe HTMLDiff::Differ do
                                  ['=', 'banana', 'banana']
                                ])
         end
+      end
+
+      it 'handles multiple whitespace characters' do
+        old_tokens = ['high', ' ', ' ', 'performance']
+        new_tokens = ['high', ' ', 'speed', ' ', 'performance']
+
+        result = HTMLDiff::Differ.diff(old_tokens, new_tokens)
+
+        expect(result).to eq([
+                               ["=", "high ", "high "],
+                               ["+", nil, "speed"],
+                               ["=", " performance", " performance"]
+                             ])
+      end
+
+      it 'generates a simplified diff from two sequences' do
+        old_tokens = ['The', ' ', 'quick', ' ', 'brown', ' ', 'fox']
+        new_tokens = ['The', ' ', 'fast', ' ', 'brown', ' ', 'fox']
+
+        result = HTMLDiff::Differ.diff(old_tokens, new_tokens)
+
+        expect(result).to eq([
+                               ['=', 'The ', 'The '],
+                               ['!', 'quick', 'fast'],
+                               ['=', ' brown fox', ' brown fox']
+                             ])
+      end
+
+      it 'joins consecutive operations of the same type across whitespaces' do
+        old_tokens = ['The', ' ', 'quick', ' ', 'brown', ' ', 'fox', ' ', 'jumps']
+        new_tokens = ['The', ' ', 'fast', ' ', 'speedy', ' ', 'fox', ' ', 'leaps']
+
+        result = HTMLDiff::Differ.diff(old_tokens, new_tokens)
+
+        expect(result).to eq([
+                               ['=', 'The ', 'The '],
+                               ['!', 'quick brown', 'fast speedy'],
+                               ['=', ' fox ', ' fox '],
+                               ['!', 'jumps', 'leaps']
+                             ])
       end
     end
   end

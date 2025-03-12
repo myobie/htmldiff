@@ -31,7 +31,7 @@ RSpec.describe HTMLDiff::DiffBuilder do
 
     it 'calls HTMLDiff.diff with the stored strings' do
       result = builder.build
-      expect(result).to eq 'This is <del class="diffmod">an</del><ins class="diffmod">a</ins> <del class="diffmod">old</del><ins class="diffmod">new</ins> string'
+      expect(result).to eq 'This is <del class="diffmod">an old</del><ins class="diffmod">a new</ins> string'
     end
   end
 end
