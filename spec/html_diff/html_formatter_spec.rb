@@ -89,14 +89,13 @@ RSpec.describe HTMLDiff::HtmlFormatter do
     context 'with default options' do
       let(:result) { described_class.format(changes) }
 
+      it_behaves_like 'common formatter behavior'
+
       it 'generates the expected HTML' do
         result = described_class.format(example_changes)
         expected = 'The <del>quick </del>red fox <del>jumped</del><ins>hopped</ins> over the <ins>lazy </ins>dog.'
         expect(result).to eq(expected)
       end
-
-
-      it_behaves_like 'common formatter behavior'
 
       context 'with removed content' do
         let(:changes) { [['-', 'deleted text', nil]] }
