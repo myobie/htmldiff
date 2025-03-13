@@ -12,7 +12,7 @@ of text using HTML and CSS.
 ### Features
 
 - Simple and opinionated API—it just works™
-- Generates diffs of text using the LCS (Longest Common Subsequence) algorithm.
+- Generates diffs of text using the LCS (Longest Common Subsequence) algorithm, tweaked to produce "chunkier" diff sequences.
 - Diff preserves whitespace and HTML tags, HTML entities, URLs, and email addresses.
 - Multi-language support (Cyrillic, Greek, Arabic, Hebrew, Chinese, Japanese, Korean, etc.)
 - Customizable output formatting (see examples below).
@@ -205,11 +205,13 @@ test.join #=> "Hello, world!"
 diff = HTMLDiff.diff(old_text, new_text, tokenizer: MyCustomTokenizer)
 ```
 
-### Tweaking Diff Sensitivity
+### Tweaking Diff Chunkiness vs. Choppiness
 
-The `:merge_threshold` option allows you to control the sensitivity of
-how non-changed tokens are merged into diff changes. This is best illustrated
-by an example:
+The `:merge_threshold` option allows you to control how diff segments are joined together
+with unchanged words in the middle. A higher `:merge_threshold` value will produce "chunkier"
+diffs, because more words will be grouped together into each insertion or deletion group.
+Conversely, a low `:merge_threshold` value will produce "choppier" diffs. This is best
+illustrated by an example:
 
 ```ruby
 old_text = "The quick fox jumped over the dog."
@@ -226,8 +228,8 @@ diff = HTMLDiff.diff(old_text, new_text, merge_threshold: 0)
 diff == "The <del>quick</del><ins>slow</ins> fox <del>jumped</del><ins>hopped</ins> over the dog."
 ```
 
-Note the value `merge_threshold: 0` will still merge whitespace, but no other characters.
-To disable merging entirely, set `merge_threshold: false` or `-1`.
+Note the value `merge_threshold: 0` will still merge whitespace, but not other characters.
+To disable merging across whitespace, set `merge_threshold: false` or `-1`.
 
 ## How HTMLDiff Works
 
