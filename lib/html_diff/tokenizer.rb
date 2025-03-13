@@ -7,81 +7,60 @@ module HTMLDiff
   module Tokenizer
     extend self
 
-    # Regular expressions for special token types (prioritized)
-    HTML_ENTITY_REGEXP = /\A&([a-zA-Z0-9]+|#[0-9]{1,6}|#x[0-9a-fA-F]{1,6});/.freeze
-    HTML_TAG_REGEXP = /\A<[^>]+>/.freeze
-    URL_REGEXP = %r{\A(https?://|www\.)[^\s<>"']+}i.freeze
-    EMAIL_REGEXP = /\A[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.freeze
+    # Chinese, Japanese, Thai, and other Asian languages
+    # which typically do not include whitespace in text
+    # are intentionally omitted.
+    COMBINED_SCRIPTS = %w[
+      Arabic
+      Hebrew
+      Devanagari
+      Hangul
+      Armenian
+      Georgian
+      Bengali
+      Gujarati
+      Gurmukhi
+      Kannada
+      Malayalam
+      Tamil
+      Telugu
+      Ethiopic
+      Sinhala
+      Ethiopic
+      Cherokee
+      Coptic
+      Syriac
+    ].map { |script| "\\p{#{script}}" }.join.freeze
 
     # Regular expression for word tokens, using capture groups.
-    # Chinese, Japanese, and Thai are intentionally omitted,
-    # Since they typically do not include whitespace in text.
-    WORD_REGEXP = /\A(?:
-      (\d+(?:[\d,.]*\d+)?) |
+    # Priority order of capture groups matters.
+    TOKEN_REGEXP = %r{\A(?:
+      (<[^>]+>) |                                             # HTML tag
+      (&(?:[a-zA-Z0-9]+|\#[0-9]{1,6}|\#x[0-9a-fA-F]{1,6});) | # HTML entity
+      ((?:https?://|www\.)[^\s<>"']+) |                       # URL
+      ([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}) |      # Email
+      ([.+-]?\d(?:[,.-]?\d+)*) |                              # Numbers
       ([\p{Latin}]+) |
       ([\p{Cyrillic}]+) |
       ([\p{Greek}]+) |
-      ([\p{Arabic}]+) |
-      ([\p{Hebrew}]+) |
-      ([\p{Devanagari}]+) |
-      ([\p{Hangul}]+) |
-      ([\p{Armenian}]+) |
-      ([\p{Georgian}]+) |
-      ([\p{Bengali}]+) |
-      ([\p{Gujarati}]+) |
-      ([\p{Gurmukhi}]+) |
-      ([\p{Kannada}]+) |
-      ([\p{Malayalam}]+) |
-      ([\p{Tamil}]+) |
-      ([\p{Telugu}]+) |
-      ([\p{Ethiopic}]+) |
-      ([\p{Khmer}]+) |
-      ([\p{Lao}]+) |
-      ([\p{Myanmar}]+) |
-      ([\p{Sinhala}]+) |
-      ([\p{Tibetan}]+) |
-      ([\p{Mongolian}]+)
-    )/x.freeze
-    GRAPHEME_CLUSTER_REGEXP = /\A\X/.freeze
+      ([#{COMBINED_SCRIPTS}]+) |
+      (\X) # Grapheme cluster
+    )}ix.freeze
 
     # Tokenizes a string into an array of words and entities.
     #
     # @param string [String] The string to tokenize.
     # @return [Array<String>] The array of tokens.
     def tokenize(string)
-      return [] if string.empty?
+      return [] if !string || string.empty?
 
-      tokens = []
       string = string.encode(Encoding::UTF_8, invalid: :replace, undef: :replace, replace: ' ')
       string.unicode_normalize!
       scanner = StringScanner.new(string)
 
-      until scanner.eos?
-        token = nil
-
-        # Check for special patterns first (optimized with character peeking)
-        case scanner.peek(1)
-        when '<'
-          token = scanner.scan(HTML_TAG_REGEXP)
-        when '&'
-          token = scanner.scan(HTML_ENTITY_REGEXP)
-        when 'h', 'H', 'w', 'W' # Potential URL starts (http, https, www)
-          token = scanner.scan(URL_REGEXP)
-        end
-
-        token ||= scanner.scan(EMAIL_REGEXP) ||
-                  scanner.scan(WORD_REGEXP)
-
-        if token
-          tokens << token
-          next
-        end
-
-        # Get next grapheme cluster
-        tokens << scanner.scan(GRAPHEME_CLUSTER_REGEXP)
+      [].tap do |tokens|
+        tokens << scanner.scan(TOKEN_REGEXP) until scanner.eos?
       end
-
-      tokens
     end
   end
 end

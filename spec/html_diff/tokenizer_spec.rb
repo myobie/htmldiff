@@ -112,6 +112,11 @@ RSpec.describe HTMLDiff::Tokenizer do
     end
 
     context 'with edge cases' do
+      it 'handles nil' do
+        tokens = described_class.tokenize(nil)
+        expect(tokens).to eq([])
+      end
+
       it 'handles empty strings' do
         tokens = described_class.tokenize('')
         expect(tokens).to eq([])
@@ -300,7 +305,7 @@ RSpec.describe HTMLDiff::Tokenizer do
 
       it 'separates multiple different scripts' do
         tokens = described_class.tokenize('LatinПриветΚαλημέραمرحباनमस्ते世界')
-        expect(tokens).to eq(%w[Latin Привет Καλημέρα مرحبا नमस्ते 世 界])
+        expect(tokens).to eq(%w[Latin Привет Καλημέρα مرحباनमस्ते 世 界])
       end
 
       it 'handles mixed scripts with spaces' do
@@ -469,11 +474,109 @@ RSpec.describe HTMLDiff::Tokenizer do
         pending 'URL boundaries are not handled correctly'
         expect(tokens).to eq(['https://example.com/path.html', '.', ' ', 'Next', ' ', 'sentence', '.'])
       end
+    end
 
-      it 'correctly handles numbers' do
+    context 'with number patterns' do
+      it 'correctly handles decimals and commas in the middle of numbers' do
         text = '1 1,234,567 1.234 1.234.567 1,234.567 foo 1,234,567.89 134.567,89'
         tokens = described_class.tokenize(text)
         expect(tokens).to eq(text.split(/(\s)/))
+      end
+
+      it 'handles leading or trailing decimals, commas' do
+        text = '.223 123. ,432 32,'
+        tokens = described_class.tokenize(text)
+        expect(tokens).to eq(['.223', ' ', '123', '.', ' ', ',', '432', ' ', '32', ','])
+      end
+
+      it 'correctly handles phone numbers' do
+        text = '1 (206) 555-0123 206-555-0123 443- -123'
+        tokens = described_class.tokenize(text)
+        expect(tokens).to eq(['1', ' ', '(', '206', ')', ' ', '555-0123', ' ', '206-555-0123', ' ', '443', '-', ' ', '-123'])
+      end
+
+      it 'tokenizes simple integers' do
+        tokens = described_class.tokenize('123 456 789')
+        expect(tokens).to eq(['123', ' ', '456', ' ', '789'])
+      end
+
+      it 'tokenizes negative numbers' do
+        tokens = described_class.tokenize('-123 -456 -789')
+        expect(tokens).to eq(['-123', ' ', '-456', ' ', '-789'])
+      end
+
+      it 'tokenizes decimal numbers' do
+        tokens = described_class.tokenize('123.45 0.678 .90')
+        expect(tokens).to eq(['123.45', ' ', '0.678', ' ', '.90'])
+      end
+
+      it 'tokenizes numbers with comma separators' do
+        tokens = described_class.tokenize('1,234 5,678,901')
+        expect(tokens).to eq(['1,234', ' ', '5,678,901'])
+      end
+
+      it 'tokenizes numbers with mixed separators' do
+        tokens = described_class.tokenize('1,234.56 7,890-12')
+        expect(tokens).to eq(['1,234.56', ' ', '7,890-12'])
+      end
+
+      it 'tokenizes numbers with leading separators' do
+        tokens = described_class.tokenize('.123 -456')
+        expect(tokens).to eq(['.123', ' ', '-456'])
+      end
+
+      it 'handles complex number formats' do
+        tokens = described_class.tokenize('1.234.567 1,234,567 1-234-567')
+        expect(tokens).to eq(['1.234.567', ' ', '1,234,567', ' ', '1-234-567'])
+      end
+
+      it 'handles numbers with trailing separators' do
+        tokens = described_class.tokenize('123. 456, 789-')
+        expect(tokens).to eq(['123', '.', ' ', '456', ',', ' ', '789', '-'])
+      end
+
+      it 'handles mixed number patterns in text' do
+        text = 'Price: $1,234.56 (was -$2,345.67) with .99 discount'
+        tokens = described_class.tokenize(text)
+        expect(tokens).to eq([
+                               'Price', ':', ' ', '$', '1,234.56', ' ', '(', 'was', ' ', '-', '$', '2,345.67', ')', ' ',
+                               'with', ' ', '.99', ' ', 'discount'
+                             ])
+      end
+
+      it 'handles phone number formats' do
+        tokens = described_class.tokenize('Call 123-456-7890 or +1.234.567.8901')
+        expect(tokens).to eq(['Call', ' ', '123-456-7890', ' ', 'or', ' ', '+1.234.567.8901'])
+      end
+
+      it 'handles version numbers' do
+        tokens = described_class.tokenize('Version 1.2.3 and 4.5-alpha')
+        expect(tokens).to eq(['Version', ' ', '1.2.3', ' ', 'and', ' ', '4.5', '-', 'alpha'])
+      end
+
+      it 'handles IP addresses' do
+        tokens = described_class.tokenize('IP address 192.168.1.1')
+        expect(tokens).to eq(['IP', ' ', 'address', ' ', '192.168.1.1'])
+      end
+
+      it 'handles financial notation' do
+        tokens = described_class.tokenize('Debt -$1,234.56 Credit +$7,890.12')
+        expect(tokens).to eq(['Debt', ' ', '-', '$', '1,234.56', ' ', 'Credit', ' ', '+', '$', '7,890.12'])
+      end
+
+      it 'handles scientific notation' do
+        tokens = described_class.tokenize('Values 1.23e-4 and 5.67e+8')
+        expect(tokens).to eq(['Values', ' ', '1.23', 'e', '-4', ' ', 'and', ' ', '5.67', 'e', '+8'])
+      end
+
+      it 'handles unusual number formats still captured by the pattern' do
+        tokens = described_class.tokenize('Strange 1.2-3,4.5-6')
+        expect(tokens).to eq(['Strange', ' ', '1.2-3,4.5-6'])
+      end
+
+      it 'correctly separates numbers from text' do
+        tokens = described_class.tokenize('abc123 456def 789.xyz')
+        expect(tokens).to eq(['abc', '123', ' ', '456', 'def', ' ', '789', '.', 'xyz'])
       end
     end
   end
