@@ -219,7 +219,7 @@ RSpec.describe HTMLDiff do
         let(:new_text) { 'some text' }
 
         it 'handles nil old_text' do
-          expect { result }.to raise_error(NoMethodError)
+          expect(result).to eq('<ins>some text</ins>')
         end
       end
 
@@ -228,7 +228,16 @@ RSpec.describe HTMLDiff do
         let(:new_text) { nil }
 
         it 'handles nil new_text' do
-          expect { result }.to raise_error(NoMethodError)
+          expect(result).to eq('<del>some text</del>')
+        end
+      end
+
+      context 'with both nil' do
+        let(:old_text) { nil }
+        let(:new_text) { nil }
+
+        it 'handles nil new_text' do
+          expect(result).to eq('')
         end
       end
 
