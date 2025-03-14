@@ -13,6 +13,7 @@ Gem::Specification.new do |spec|
   spec.license = 'MIT'
 
   spec.add_dependency 'diff-lcs'
+  spec.add_dependency 'nokogiri', '>= 1'
 
   spec.files = Dir.glob('lib/**/*') + %w[LICENSE README]
   spec.require_paths = ['lib']
