@@ -46,7 +46,7 @@ diff = HTMLDiff.diff(old_text, new_text)
 Output:
 
 ```html
-The <del class="diffdel">quick </del>fox <del class="diffmod">jumped</del><ins class="diffmod">hopped</ins> over the <ins class="diffins">lazy</ins> dog.
+The <del>quick </del>fox <del>jumped</del><ins>hopped</ins> over the <ins>lazy</ins> dog.
 ```
 
 ### Formatting the HTML Output
