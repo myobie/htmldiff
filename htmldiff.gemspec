@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'diff-lcs'
 
-  spec.files = Dir.glob('lib/**/*') + %w[LICENSE README]
+  spec.files = Dir.glob('lib/**/*') + %w[LICENSE README.md]
   spec.require_paths = ['lib']
   spec.metadata['rubygems_mfa_required'] = 'true'
 end
